@@ -12,6 +12,13 @@ import (
 	"time"
 )
 
+var statusMessages = map[int]string{
+	http.StatusNotFound:            "Репозиторий не найден. Проверьте правильность owner/repo.",
+	http.StatusUnauthorized:        "Ошибка авторизации. Проверьте GITHUB_TOKEN.",
+	http.StatusForbidden:           "Доступ запрещен. Возможно, исчерпан лимит запросов (Rate Limit).",
+	http.StatusInternalServerError: "Ошибка на стороне GitHub. Попробуйте позже.",
+}
+
 var token string = os.Getenv("GITHUB_TOKEN")
 
 type GithubHarvester struct {
@@ -51,7 +58,11 @@ func main() {
 	}
 
 	harvester := NewGithubHarvester(owner, repoName)
-	harvester.HarvestAll()
+	if err := harvester.HarvestAll(); err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	harvester.PrintRepoInformation()
 }
 
@@ -65,25 +76,34 @@ func NewGithubHarvester(owner, repoName string) *GithubHarvester {
 	}
 }
 
-func (gh *GithubHarvester) HarvestAll() {
+func (gh *GithubHarvester) HarvestAll() error {
 	var wg sync.WaitGroup
+	errChan := make(chan error, 2)
+
 	wg.Add(2)
 
 	go func() {
 		defer wg.Done()
 		if err := gh.GetRepoInfo(); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			errChan <- err
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
 		if err := gh.GetCommitsCount(); err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			errChan <- err
 		}
 	}()
 
 	wg.Wait()
+	close(errChan)
+
+	if len(errChan) > 0 {
+		return <-errChan
+	}
+
+	return nil
 }
 
 func (gh *GithubHarvester) PrintRepoInformation() {
@@ -133,7 +153,7 @@ func (gh *GithubHarvester) GetRepoInfo() error {
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("server returned error: %d", resp.StatusCode)
+		return mapError(resp.StatusCode)
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(gh.repoStruct)
@@ -167,7 +187,7 @@ func (gh *GithubHarvester) GetCommitsCount() error {
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("server returned error: %d", resp.StatusCode)
+		return mapError(resp.StatusCode)
 	}
 
 	link := resp.Header.Get("link")
@@ -184,4 +204,12 @@ func (gh *GithubHarvester) GetCommitsCount() error {
 	}
 
 	return nil
+}
+
+func mapError(statusCode int) error {
+	if msg, ok := statusMessages[statusCode]; ok {
+		return fmt.Errorf("%d: %s", statusCode, msg)
+	}
+
+	return fmt.Errorf("ошибка %d", statusCode)
 }
