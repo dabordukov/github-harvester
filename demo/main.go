@@ -9,9 +9,18 @@ import (
 	"strconv"
 	"sync"
 	"text/tabwriter"
+	"time"
 )
 
-var apiEndpoint = "https://api.github.com"
+var token string = os.Getenv("GITHUB_TOKEN")
+
+type GithubHarvester struct {
+	apiEndpoint string
+	repoStruct  *RepositoryInfo
+	httpClient  *http.Client
+	owner       string
+	repoName    string
+}
 
 type Owner struct {
 	Login string `json:"login"`
@@ -41,47 +50,59 @@ func main() {
 		}
 	}
 
-	var repoStruct RepositoryInfo
+	harvester := NewGithubHarvester(owner, repoName)
+	harvester.HarvestAll()
+	harvester.PrintRepoInformation()
+}
 
+func NewGithubHarvester(owner, repoName string) *GithubHarvester {
+	return &GithubHarvester{
+		apiEndpoint: "https://api.github.com",
+		repoStruct:  &RepositoryInfo{},
+		httpClient:  &http.Client{Timeout: 10 * time.Second},
+		owner:       owner,
+		repoName:    repoName,
+	}
+}
+
+func (gh *GithubHarvester) HarvestAll() {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
 	go func() {
 		defer wg.Done()
-		if err := GetRepoInfo(owner, repoName, &repoStruct); err != nil {
+		if err := gh.GetRepoInfo(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
 	}()
 
 	go func() {
 		defer wg.Done()
-		if err := GetCommitsCount(owner, repoName, &repoStruct); err != nil {
+		if err := gh.GetCommitsCount(); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 		}
 	}()
 
 	wg.Wait()
-
-	PrintRepoInformation(&repoStruct)
 }
 
-func PrintRepoInformation(repo *RepositoryInfo) {
+func (gh *GithubHarvester) PrintRepoInformation() {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 
 	_, _ = fmt.Fprintln(w, "--------------------------------------------------")
-	_, _ = fmt.Fprintf(w, "🚀 REPOSITORY:\t%s/%s\n", repo.Owner.Login, repo.Name)
+	_, _ = fmt.Fprintf(w, "🚀 REPOSITORY:\t%s/%s\n", gh.repoStruct.Owner.Login, gh.repoStruct.Name)
 	_, _ = fmt.Fprintln(w, "--------------------------------------------------")
 
-	if repo.Description != "" {
-		_, _ = fmt.Fprintf(w, "📝 Description:\t%s\n", repo.Description)
+	if gh.repoStruct.Description != "" {
+		_, _ = fmt.Fprintf(w, "📝 Description:\t%s\n", gh.repoStruct.Description)
 	} else {
 		_, _ = fmt.Fprintf(w, "📝 Description:\t[No description provided]\n")
 	}
 
-	_, _ = fmt.Fprintf(w, "⭐ Stars:\t%d\n", repo.Stargazers)
-	_, _ = fmt.Fprintf(w, "🍴 Forks:\t%d\n", repo.Forks)
-	_, _ = fmt.Fprintf(w, "📦 Commits:\t%d\n", repo.CommitsCount)
-	_, _ = fmt.Fprintf(w, "📅 Created:\t%s\n", repo.CreatedAt)
+	_, _ = fmt.Fprintf(w, "⭐ Stars:\t%d\n", gh.repoStruct.Stargazers)
+	_, _ = fmt.Fprintf(w, "🍴 Forks:\t%d\n", gh.repoStruct.Forks)
+	_, _ = fmt.Fprintf(w, "📦 Commits:\t%d\n", gh.repoStruct.CommitsCount)
+	_, _ = fmt.Fprintf(w, "📅 Created:\t%s\n", gh.repoStruct.CreatedAt)
 	_, _ = fmt.Fprintln(w, "--------------------------------------------------")
 
 	if err := w.Flush(); err != nil {
@@ -89,9 +110,18 @@ func PrintRepoInformation(repo *RepositoryInfo) {
 	}
 }
 
-func GetRepoInfo(owner, repoName string, repoStruct *RepositoryInfo) error {
-	url := fmt.Sprintf("%s/repos/%s/%s", apiEndpoint, owner, repoName)
-	resp, err := http.Get(url)
+func (gh *GithubHarvester) GetRepoInfo() error {
+	url := fmt.Sprintf("%s/repos/%s/%s", gh.apiEndpoint, gh.owner, gh.repoName)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return err
+	}
+
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	resp, err := gh.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -106,7 +136,7 @@ func GetRepoInfo(owner, repoName string, repoStruct *RepositoryInfo) error {
 		return fmt.Errorf("server returned error: %d", resp.StatusCode)
 	}
 
-	err = json.NewDecoder(resp.Body).Decode(repoStruct)
+	err = json.NewDecoder(resp.Body).Decode(gh.repoStruct)
 	if err != nil {
 		return fmt.Errorf("can't parse JSON: %w", err)
 	}
@@ -114,9 +144,18 @@ func GetRepoInfo(owner, repoName string, repoStruct *RepositoryInfo) error {
 	return nil
 }
 
-func GetCommitsCount(owner, repoName string, repoStruct *RepositoryInfo) error {
-	url := fmt.Sprintf("%s/repos/%s/%s/commits?per_page=1", apiEndpoint, owner, repoName)
-	resp, err := http.Head(url)
+func (gh *GithubHarvester) GetCommitsCount() error {
+	url := fmt.Sprintf("%s/repos/%s/%s/commits?per_page=1", gh.apiEndpoint, gh.owner, gh.repoName)
+	req, err := http.NewRequest("HEAD", url, nil)
+	if err != nil {
+		return err
+	}
+
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	resp, err := gh.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -141,7 +180,7 @@ func GetCommitsCount(owner, repoName string, repoStruct *RepositoryInfo) error {
 
 	if len(matches) > 1 {
 		count, _ := strconv.Atoi(matches[1])
-		repoStruct.CommitsCount = count
+		gh.repoStruct.CommitsCount = count
 	}
 
 	return nil

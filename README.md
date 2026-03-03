@@ -15,3 +15,10 @@
 ```bash
 go run demo/main.go
 ```
+
+## 🔑 Github API key:
+Для использования ключа укажите переменную среды GITHUB_TOKEN:
+
+```bash
+export GITHUB_TOKEN=github_123456789
+```
