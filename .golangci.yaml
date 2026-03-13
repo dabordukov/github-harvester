@@ -1,0 +1,12 @@
+version: "2"
+linters:
+  enable: [staticcheck]
+  settings:
+    staticcheck:
+      checks: ["all", "-ST1000"]
+    errcheck:
+      exclude-functions:
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - fmt.Printf
+        - fmt.Println
