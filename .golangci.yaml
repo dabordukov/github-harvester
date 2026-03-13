@@ -4,3 +4,9 @@ linters:
   settings:
     staticcheck:
       checks: ["all", "-ST1000"]
+    errcheck:
+      exclude-functions:
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - fmt.Printf
+        - fmt.Println

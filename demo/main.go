@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"text/tabwriter"
 	"time"
@@ -23,7 +24,7 @@ var token string = os.Getenv("GITHUB_TOKEN")
 
 type GithubHarvester struct {
 	apiEndpoint string
-	repoStruct  *RepositoryInfo
+	repoStruct  RepositoryInfo
 	httpClient  *http.Client
 	owner       string
 	repoName    string
@@ -63,13 +64,13 @@ func main() {
 		return
 	}
 
-	harvester.PrintRepoInformation()
+	fmt.Println(harvester)
 }
 
 func NewGithubHarvester(owner, repoName string) *GithubHarvester {
 	return &GithubHarvester{
 		apiEndpoint: "https://api.github.com",
-		repoStruct:  &RepositoryInfo{},
+		repoStruct:  RepositoryInfo{},
 		httpClient:  &http.Client{Timeout: 10 * time.Second},
 		owner:       owner,
 		repoName:    repoName,
@@ -106,28 +107,29 @@ func (gh *GithubHarvester) HarvestAll() error {
 	return nil
 }
 
-func (gh *GithubHarvester) PrintRepoInformation() {
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+func (gh *GithubHarvester) String() string {
+	var sb strings.Builder
+	w := tabwriter.NewWriter(&sb, 0, 0, 2, ' ', 0)
 
-	_, _ = fmt.Fprintln(w, "--------------------------------------------------")
-	_, _ = fmt.Fprintf(w, "🚀 REPOSITORY:\t%s/%s\n", gh.repoStruct.Owner.Login, gh.repoStruct.Name)
-	_, _ = fmt.Fprintln(w, "--------------------------------------------------")
+	fmt.Fprintln(w, "--------------------------------------------------")
+	fmt.Fprintf(w, "🚀 REPOSITORY:\t%s/%s\n", gh.repoStruct.Owner.Login, gh.repoStruct.Name)
+	fmt.Fprintln(w, "--------------------------------------------------")
 
-	if gh.repoStruct.Description != "" {
-		_, _ = fmt.Fprintf(w, "📝 Description:\t%s\n", gh.repoStruct.Description)
-	} else {
-		_, _ = fmt.Fprintf(w, "📝 Description:\t[No description provided]\n")
+	description := gh.repoStruct.Description
+	if description == "" {
+		description = "[No description provided]"
 	}
+	fmt.Fprintf(w, "📝 Description:\t%s\n", description)
 
-	_, _ = fmt.Fprintf(w, "⭐ Stars:\t%d\n", gh.repoStruct.Stargazers)
-	_, _ = fmt.Fprintf(w, "🍴 Forks:\t%d\n", gh.repoStruct.Forks)
-	_, _ = fmt.Fprintf(w, "📦 Commits:\t%d\n", gh.repoStruct.CommitsCount)
-	_, _ = fmt.Fprintf(w, "📅 Created:\t%s\n", gh.repoStruct.CreatedAt)
-	_, _ = fmt.Fprintln(w, "--------------------------------------------------")
+	fmt.Fprintf(w, "⭐ Stars:\t%d\n", gh.repoStruct.Stargazers)
+	fmt.Fprintf(w, "🍴 Forks:\t%d\n", gh.repoStruct.Forks)
+	fmt.Fprintf(w, "📦 Commits:\t%d\n", gh.repoStruct.CommitsCount)
+	fmt.Fprintf(w, "📅 Created:\t%s\n", gh.repoStruct.CreatedAt)
+	fmt.Fprintln(w, "--------------------------------------------------")
 
-	if err := w.Flush(); err != nil {
-		fmt.Fprintf(os.Stderr, "Can't flush buffer: %v", err)
-	}
+	_ = w.Flush()
+
+	return sb.String()
 }
 
 func (gh *GithubHarvester) GetRepoInfo() error {
@@ -156,7 +158,7 @@ func (gh *GithubHarvester) GetRepoInfo() error {
 		return mapError(resp.StatusCode)
 	}
 
-	err = json.NewDecoder(resp.Body).Decode(gh.repoStruct)
+	err = json.NewDecoder(resp.Body).Decode(&gh.repoStruct)
 	if err != nil {
 		return fmt.Errorf("can't parse JSON: %w", err)
 	}
