@@ -1,0 +1,61 @@
+definitions:
+  model.RepositoryModel:
+    properties:
+      commitsCount:
+        format: int64
+        type: integer
+      createdAt:
+        type: string
+      description:
+        type: string
+      forks:
+        format: int64
+        type: integer
+      name:
+        type: string
+      owner:
+        type: string
+      stars:
+        format: int64
+        type: integer
+    type: object
+info:
+  contact: {}
+  description: API Gateway for collecting GitHub stats.
+  title: Github Harvester API
+paths:
+  /repo/{owner}/{repo}:
+    get:
+      consumes:
+      - application/json
+      description: Returns stars, forks, and commit count for a public repo
+      parameters:
+      - description: Repository Owner
+        in: path
+        name: owner
+        required: true
+        type: string
+      - description: Repository Name
+        in: path
+        name: repo
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.RepositoryModel'
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get GitHub Repository Stats
+      tags:
+      - repositories
+swagger: "2.0"
