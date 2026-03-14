@@ -137,7 +137,18 @@ func (ga *GitHubAdapter) GetCommitsCount(ctx context.Context, owner, repoName st
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("github api: %s", resp.Status)
+		if resp.StatusCode != http.StatusOK {
+			switch resp.StatusCode {
+			case http.StatusNotFound:
+				return ErrNotFound
+			case http.StatusUnauthorized:
+				return ErrUnauthorized
+			case http.StatusForbidden:
+				return ErrRateLimited
+			default:
+				return fmt.Errorf("github api unexpected status: %d", resp.StatusCode)
+			}
+		}
 	}
 
 	link := resp.Header.Get("link")

@@ -55,9 +55,10 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /repo/{owner}/{repo}", handler.GetRepo)
 	mux.Handle("GET /swagger/", httpSwagger.WrapHandler)
+	wrappedMux := LoggingMiddleware(mux)
 	srv := &http.Server{
 		Addr:         ":" + httpPort,
-		Handler:      mux,
+		Handler:      wrappedMux,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
@@ -66,4 +67,12 @@ func main() {
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("listen error: %s\n", err)
 	}
+}
+
+func LoggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("[HTTP] %s %s", r.Method, r.URL.Path)
+
+		next.ServeHTTP(w, r)
+	})
 }
