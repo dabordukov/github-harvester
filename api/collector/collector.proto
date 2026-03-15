@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option go_package = "./internal/pkg/pb;pb";
+
+service Collector {
+  rpc GetRepository(GetRepoRequest) returns (GetRepoResponse);
+}
+
+message GetRepoResponse {
+  string name = 1;
+  string owner = 2;
+  string description = 3;
+  int64 forks = 4;
+  int64 stars = 5;
+  string created_at = 6;
+  int64 commits_count = 7;
+}
+
+message GetRepoRequest {
+  string owner = 1;
+  string repoName = 2;
+}
