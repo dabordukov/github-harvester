@@ -9,6 +9,7 @@ import (
 	processorpb "repo-stat/proto/processor"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -19,7 +20,10 @@ type Client struct {
 }
 
 func NewClient(address string, log *slog.Logger) (*Client, error) {
-	conn, err := grpc.NewClient(address)
+	conn, err := grpc.NewClient(
+		address,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	if err != nil {
 		return nil, err
 	}

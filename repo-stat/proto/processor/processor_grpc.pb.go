@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Processor_GetRepository_FullMethodName = "/Processor/GetRepository"
-	Processor_Ping_FullMethodName          = "/Processor/Ping"
+	Processor_GetRepository_FullMethodName = "/processor.Processor/GetRepository"
+	Processor_Ping_FullMethodName          = "/processor.Processor/Ping"
 )
 
 // ProcessorClient is the client API for Processor service.
@@ -142,7 +142,7 @@ func _Processor_Ping_Handler(srv interface{}, ctx context.Context, dec func(inte
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Processor_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Processor",
+	ServiceName: "processor.Processor",
 	HandlerType: (*ProcessorServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+package collector;
 option go_package = "repo-stat/proto/collector";
 
 service Collector {

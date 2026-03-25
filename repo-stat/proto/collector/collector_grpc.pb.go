@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Collector_GetRepository_FullMethodName = "/Collector/GetRepository"
-	Collector_Ping_FullMethodName          = "/Collector/Ping"
+	Collector_GetRepository_FullMethodName = "/collector.Collector/GetRepository"
+	Collector_Ping_FullMethodName          = "/collector.Collector/Ping"
 )
 
 // CollectorClient is the client API for Collector service.
@@ -142,7 +142,7 @@ func _Collector_Ping_Handler(srv interface{}, ctx context.Context, dec func(inte
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var Collector_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Collector",
+	ServiceName: "collector.Collector",
 	HandlerType: (*CollectorServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
