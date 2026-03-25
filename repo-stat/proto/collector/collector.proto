@@ -4,6 +4,7 @@ option go_package = "repo-stat/proto/collector";
 
 service Collector {
   rpc GetRepository(GetRepoRequest) returns (GetRepoResponse);
+  rpc Ping(PingRequest) returns (PingResponse);
 }
 
 message GetRepoResponse {
@@ -20,8 +21,6 @@ message GetRepoRequest {
   string owner = 1;
   string repoName = 2;
 }
-
-service Subscriber { rpc Ping(PingRequest) returns (PingResponse); }
 
 message PingRequest {}
 

@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	Collector_GetRepository_FullMethodName = "/Collector/GetRepository"
+	Collector_Ping_FullMethodName          = "/Collector/Ping"
 )
 
 // CollectorClient is the client API for Collector service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CollectorClient interface {
 	GetRepository(ctx context.Context, in *GetRepoRequest, opts ...grpc.CallOption) (*GetRepoResponse, error)
+	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 }
 
 type collectorClient struct {
@@ -47,11 +49,22 @@ func (c *collectorClient) GetRepository(ctx context.Context, in *GetRepoRequest,
 	return out, nil
 }
 
+func (c *collectorClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PingResponse)
+	err := c.cc.Invoke(ctx, Collector_Ping_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CollectorServer is the server API for Collector service.
 // All implementations must embed UnimplementedCollectorServer
 // for forward compatibility.
 type CollectorServer interface {
 	GetRepository(context.Context, *GetRepoRequest) (*GetRepoResponse, error)
+	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	mustEmbedUnimplementedCollectorServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedCollectorServer struct{}
 
 func (UnimplementedCollectorServer) GetRepository(context.Context, *GetRepoRequest) (*GetRepoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRepository not implemented")
+}
+func (UnimplementedCollectorServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Ping not implemented")
 }
 func (UnimplementedCollectorServer) mustEmbedUnimplementedCollectorServer() {}
 func (UnimplementedCollectorServer) testEmbeddedByValue()                   {}
@@ -104,6 +120,24 @@ func _Collector_GetRepository_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Collector_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CollectorServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Collector_Ping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CollectorServer).Ping(ctx, req.(*PingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Collector_ServiceDesc is the grpc.ServiceDesc for Collector service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,107 +149,9 @@ var Collector_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetRepository",
 			Handler:    _Collector_GetRepository_Handler,
 		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/collector/collector.proto",
-}
-
-const (
-	Subscriber_Ping_FullMethodName = "/Subscriber/Ping"
-)
-
-// SubscriberClient is the client API for Subscriber service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type SubscriberClient interface {
-	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
-}
-
-type subscriberClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewSubscriberClient(cc grpc.ClientConnInterface) SubscriberClient {
-	return &subscriberClient{cc}
-}
-
-func (c *subscriberClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PingResponse)
-	err := c.cc.Invoke(ctx, Subscriber_Ping_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// SubscriberServer is the server API for Subscriber service.
-// All implementations must embed UnimplementedSubscriberServer
-// for forward compatibility.
-type SubscriberServer interface {
-	Ping(context.Context, *PingRequest) (*PingResponse, error)
-	mustEmbedUnimplementedSubscriberServer()
-}
-
-// UnimplementedSubscriberServer must be embedded to have
-// forward compatible implementations.
-//
-// NOTE: this should be embedded by value instead of pointer to avoid a nil
-// pointer dereference when methods are called.
-type UnimplementedSubscriberServer struct{}
-
-func (UnimplementedSubscriberServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method Ping not implemented")
-}
-func (UnimplementedSubscriberServer) mustEmbedUnimplementedSubscriberServer() {}
-func (UnimplementedSubscriberServer) testEmbeddedByValue()                    {}
-
-// UnsafeSubscriberServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to SubscriberServer will
-// result in compilation errors.
-type UnsafeSubscriberServer interface {
-	mustEmbedUnimplementedSubscriberServer()
-}
-
-func RegisterSubscriberServer(s grpc.ServiceRegistrar, srv SubscriberServer) {
-	// If the following call panics, it indicates UnimplementedSubscriberServer was
-	// embedded by pointer and is nil.  This will cause panics if an
-	// unimplemented method is ever invoked, so we test this at initialization
-	// time to prevent it from happening at runtime later due to I/O.
-	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
-		t.testEmbeddedByValue()
-	}
-	s.RegisterService(&Subscriber_ServiceDesc, srv)
-}
-
-func _Subscriber_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PingRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(SubscriberServer).Ping(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Subscriber_Ping_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SubscriberServer).Ping(ctx, req.(*PingRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// Subscriber_ServiceDesc is the grpc.ServiceDesc for Subscriber service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var Subscriber_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "Subscriber",
-	HandlerType: (*SubscriberServer)(nil),
-	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Ping",
-			Handler:    _Subscriber_Ping_Handler,
+			Handler:    _Collector_Ping_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

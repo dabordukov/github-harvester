@@ -10,10 +10,11 @@ import (
 	collectorpb "repo-stat/proto/collector"
 )
 
-func NewServer(log *slog.Logger, cfg config.Config) (*grpcserver.Server, error) {
+func NewServerHandler(log *slog.Logger, cfg config.Config) (*grpcserver.Server, error) {
 	githubAdapter := adapter.NewGitHubAdapter()
 	collectorService := service.NewCollectorService(githubAdapter)
-	collectorServer := NewHandler(log, collectorService)
+	pingService := service.NewPing()
+	collectorServer := NewHandler(log, collectorService, pingService)
 
 	srv, err := grpcserver.New(cfg.GRPC.Address)
 	if err != nil {

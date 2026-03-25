@@ -22,12 +22,14 @@ type Handler struct {
 	collector.UnimplementedCollectorServer
 	log     *slog.Logger
 	service ServiceInterface
+	ping    *service.Ping
 }
 
-func NewHandler(log *slog.Logger, service ServiceInterface) *Handler {
+func NewHandler(log *slog.Logger, service ServiceInterface, ping *service.Ping) *Handler {
 	return &Handler{
 		log:     log,
 		service: service,
+		ping:    ping,
 	}
 }
 

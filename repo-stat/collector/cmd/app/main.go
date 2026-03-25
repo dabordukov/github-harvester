@@ -28,7 +28,7 @@ func run(ctx context.Context) error {
 	log.Debug("debug messages are enabled")
 
 	// handler
-	srv, err := collectorgrpc.NewServer(log, cfg)
+	srv, err := collectorgrpc.NewServerHandler(log, cfg)
 	if err != nil {
 		log.Error("error creating server", "error", err)
 		return err
