@@ -8,10 +8,16 @@ import (
 	"os/signal"
 
 	"repo-stat/api/config"
+	_ "repo-stat/api/docs"
 	"repo-stat/api/internal/controller/http"
 	"repo-stat/platform/httpserver"
 	"repo-stat/platform/logger"
 )
+
+// @title Repo Stat API
+// @version 1.0
+// @description API Gateway for repository info and service health checks.
+// @BasePath /
 
 func run(ctx context.Context) error {
 	// config

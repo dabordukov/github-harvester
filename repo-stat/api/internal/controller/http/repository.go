@@ -15,6 +15,18 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// NewRepositoryInfoHandler godoc
+// @Summary Get repository information
+// @Tags repositories
+// @Produce json
+// @Param url query string true "GitHub repository URL"
+// @Success 200 {object} dto.RepositoryInfoResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 429 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /api/repositories/info [get]
 func NewRepositoryInfoHandler(log *slog.Logger, repositoryInfo *usecase.RepositoryInfo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		rawURL := r.URL.Query().Get("url")

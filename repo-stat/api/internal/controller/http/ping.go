@@ -9,6 +9,13 @@ import (
 	"repo-stat/api/internal/usecase"
 )
 
+// NewPingHandler godoc
+// @Summary Ping services
+// @Tags ping
+// @Produce json
+// @Success 200 {object} dto.PingResponse
+// @Failure 503 {object} dto.PingResponse
+// @Router /api/ping [get]
 func NewPingHandler(log *slog.Logger, ping *usecase.Ping) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		result := ping.Execute(r.Context())
