@@ -65,8 +65,8 @@ func NewRepositoryInfoHandler(log *slog.Logger, repositoryInfo *usecase.Reposito
 	}
 }
 
-func parseRepositoryURL(URL string) (string, string, error) {
-	parsedURL, err := url.Parse(URL)
+func parseRepositoryURL(u string) (string, string, error) {
+	parsedURL, err := url.Parse(u)
 	if err != nil {
 		return "", "", errors.New("invalid repository url")
 	}
