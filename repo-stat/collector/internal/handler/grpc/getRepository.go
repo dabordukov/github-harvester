@@ -59,6 +59,7 @@ func (h *Handler) GetRepository(ctx context.Context, req *collector.GetRepoReque
 	}
 
 	return &collector.GetRepoResponse{
+		FullName:     res.FullName,
 		Name:         res.Name,
 		Owner:        res.Owner,
 		Description:  res.Description,

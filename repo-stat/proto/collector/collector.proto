@@ -16,6 +16,7 @@ message GetRepoResponse {
   int64 stars = 5;
   string created_at = 6;
   int64 commits_count = 7;
+  string full_name = 8;
 }
 
 message GetRepoRequest {

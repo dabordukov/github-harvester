@@ -54,6 +54,7 @@ func NewRepositoryInfoHandler(log *slog.Logger, repositoryInfo *usecase.Reposito
 		if err := json.NewEncoder(w).Encode(dto.RepositoryInfoResponse{
 			Name:         info.Name,
 			Owner:        info.Owner,
+			FullName:     info.FullName,
 			Description:  info.Description,
 			Forks:        info.Forks,
 			Stars:        info.Stars,

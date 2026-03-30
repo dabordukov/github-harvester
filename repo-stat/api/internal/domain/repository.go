@@ -1,6 +1,7 @@
 package domain
 
 type RepositoryInfo struct {
+	FullName     string
 	Name         string
 	Owner        string
 	Description  string

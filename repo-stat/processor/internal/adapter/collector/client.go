@@ -47,6 +47,7 @@ func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain
 	}
 
 	return &domain.Repository{
+		FullName:     resp.GetFullName(),
 		Name:         resp.GetName(),
 		Owner:        resp.GetOwner(),
 		Description:  resp.GetDescription(),

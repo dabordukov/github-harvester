@@ -19,6 +19,7 @@ const githubAPIEndpoint = "https://api.github.com"
 var extractLastPageNumberRegEx = regexp.MustCompile(`page=(\d+)>; rel="last"`)
 
 type RepositoryDTO struct {
+	FullName    string `json:"full_name"`
 	Name        string `json:"name"`
 	OwnerStruct struct {
 		Login string `json:"login"`

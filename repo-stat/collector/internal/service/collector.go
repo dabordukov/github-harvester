@@ -15,6 +15,7 @@ type CollectorService struct {
 }
 
 type RepositoryModel struct {
+	FullName     string
 	Name         string
 	Owner        string
 	Description  string
@@ -35,6 +36,7 @@ func (s *CollectorService) GetRepositoryData(ctx context.Context, owner, repo st
 	}
 
 	return &RepositoryModel{
+		FullName:     data.FullName,
 		Name:         data.Name,
 		Owner:        data.OwnerStruct.Login,
 		Description:  data.Description,

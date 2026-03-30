@@ -25,6 +25,7 @@ func (s *Server) GetRepository(ctx context.Context, req *processorpb.GetRepoRequ
 	}
 
 	return &processorpb.GetRepoResponse{
+		FullName:     repo.FullName,
 		Name:         repo.Name,
 		Owner:        repo.Owner,
 		Description:  repo.Description,
