@@ -10,7 +10,7 @@ service Processor {
 
 message GetRepoRequest {
   string owner = 1;
-  string repoName = 2;
+  string repo_name = 2;
 }
 
 message GetRepoResponse {
@@ -23,6 +23,9 @@ message GetRepoResponse {
   int64 commits_count = 7;
 }
 
-message PingRequest {}
+message PingRequest {
+}
 
-message PingResponse { string reply = 1; }
+message PingResponse {
+  string reply = 1;
+}
