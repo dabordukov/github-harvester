@@ -20,6 +20,8 @@ RUN cd /src && go build -o /subscriber subscriber/cmd/app/main.go
 
 FROM scratch
 
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /subscriber /subscriber
+COPY --from=build /src/subscriber/migrations /migrations
 
 ENTRYPOINT ["/subscriber", "-config", "/config.yaml"]

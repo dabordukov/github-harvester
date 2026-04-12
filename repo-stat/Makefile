@@ -7,12 +7,13 @@ GOIMPORTS := $(GOBIN)/goimports
 GOLANGCI_LINT := $(GOBIN)/golangci-lint
 PROTOC_GEN_GO := $(GOBIN)/protoc-gen-go
 PROTOC_GEN_GO_GRPC := $(GOBIN)/protoc-gen-go-grpc
+SQLC := $(GOBIN)/sqlc
 
 PROTOC_GEN_GO_VERSION := v1.32.0
 PROTOC_GEN_GO_GRPC_VERSION := v1.6.1
 GOLANGCI_LINT_VERSION := v2.11.2
 
-.PHONY: lint fix protobuf swagger protolint gofmtcheck golint tools test
+.PHONY: lint fix protobuf sqlc swagger protolint gofmtcheck golint tools test
 
 lint: protolint gofmtcheck golint
 
@@ -35,6 +36,9 @@ protobuf:
 		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
 		proto/processor/processor.proto
 
+sqlc:
+	cd subscriber && PATH="$(GOBIN):$$PATH" $(SQLC) generate
+
 swagger:
 	PATH="$(GOBIN):$$PATH" swag init -g api/cmd/app/main.go -o api/docs
 
@@ -53,6 +57,7 @@ tools:
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
 	go install github.com/swaggo/swag/cmd/swag@latest
+	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@$(PROTOC_GEN_GO_VERSION)
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@$(PROTOC_GEN_GO_GRPC_VERSION)
 	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)

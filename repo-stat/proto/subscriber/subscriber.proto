@@ -1,11 +1,17 @@
 syntax = "proto3";
 
-package subscriber.v1;
+package subscriber;
 
-option go_package = "yadro.com/course/proto/gen/go/subscriber/v1;subscriberv1";
+option go_package = "repo-stat/proto/subscriber";
 
 service Subscriber {
   rpc Ping(PingRequest) returns (PingResponse);
+  rpc CreateSubscription(CreateSubscriptionRequest)
+      returns (CreateSubscriptionResponse);
+  rpc DeleteSubscription(DeleteSubscriptionRequest)
+      returns (DeleteSubscriptionResponse);
+  rpc ListSubscriptions(ListSubscriptionsRequest)
+      returns (ListSubscriptionsResponse);
 }
 
 message PingRequest {
@@ -13,4 +19,31 @@ message PingRequest {
 
 message PingResponse {
   string reply = 1;
+}
+
+message CreateSubscriptionRequest {
+  Subscription subscription = 1;
+}
+
+message CreateSubscriptionResponse {
+  Subscription subscription = 1;
+}
+
+message DeleteSubscriptionRequest {
+  Subscription subscription = 1;
+}
+
+message DeleteSubscriptionResponse {
+}
+
+message ListSubscriptionsRequest {
+}
+
+message ListSubscriptionsResponse {
+  repeated Subscription subscriptions = 1;
+}
+
+message Subscription {
+  string owner = 1;
+  string repo_name = 2;
 }

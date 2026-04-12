@@ -1,12 +1,13 @@
 app:
   app_name: "repo-stat-subscriber"
 
+database:
+  dsn: "postgres://postgres:postgres@localhost:5432/repo_stat?sslmode=disable"
+  migrations_path: "file://subscriber/migrations"
+
 grpc:
   address: "localhost:8081"
   timeout: "5s"
 
 logger:
   log_level: "DEBUG"
-
-services:
-  api: "localhost:8080"

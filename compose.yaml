@@ -1,4 +1,15 @@
 services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: repo_stat
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   api:
     image: api:latest
     build:
@@ -15,6 +26,7 @@ services:
       - SUBSCRIBER_ADDRESS=subscriber:8080
       - PROCESSOR_ADDRESS=processor:8080
     depends_on:
+      - postgres
       - subscriber
       - processor
 
@@ -31,7 +43,10 @@ services:
       - ./repo-stat/subscriber/config/config.yaml:/config.yaml
     environment:
       - LISTEN_ADDRESS=:8080
-      - API_ADDRESS=api:8080
+      - DATABASE_DSN=postgres://postgres:postgres@postgres:5432/repo_stat?sslmode=disable
+      - MIGRATIONS_PATH=file:///migrations
+    depends_on:
+      - postgres
 
   processor:
     image: processor:latest
@@ -63,6 +78,7 @@ services:
       - ./repo-stat/collector/config/config.yaml:/config.yaml
     environment:
       - LISTEN_ADDRESS=:8080
+      - SUBSCRIBER_ADDRESS=subscriber:8080
 
   tests:
     image: tests:latest
@@ -73,3 +89,6 @@ services:
     depends_on:
       - api
     entrypoint: [ "true" ]
+
+volumes:
+  postgres_data:

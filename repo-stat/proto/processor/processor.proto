@@ -5,6 +5,8 @@ option go_package = "repo-stat/proto/processor";
 
 service Processor {
   rpc GetRepository(GetRepoRequest) returns (GetRepoResponse);
+  rpc GetSubscriptionsInfo(GetSubscriptionsInfoRequest)
+      returns (GetSubscriptionsInfoResponse);
   rpc Ping(PingRequest) returns (PingResponse);
 }
 
@@ -22,6 +24,13 @@ message GetRepoResponse {
   string created_at = 6;
   int64 commits_count = 7;
   string full_name = 8;
+}
+
+message GetSubscriptionsInfoRequest {
+}
+
+message GetSubscriptionsInfoResponse {
+  repeated GetRepoResponse repositories = 1;
 }
 
 message PingRequest {

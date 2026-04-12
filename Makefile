@@ -33,6 +33,8 @@ lint: ## Run linters
 proto: ## Compile protobuf files
 	$(MAKE) -C repo-stat protobuf
 
+sql: ## Compile sqlc files 
+	$(MAKE) -C repo-stat sqlc
 unit: ## Run tests and generate coverage report
 	$(MAKE) -C repo-stat test
 	mv repo-stat/cover.html .
