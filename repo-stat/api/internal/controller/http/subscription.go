@@ -10,6 +10,20 @@ import (
 	"repo-stat/api/internal/usecase"
 )
 
+// NewCreateSubscriptionHandler godoc
+// @Summary Create subscription
+// @Tags subscriptions
+// @Accept json
+// @Produce json
+// @Param request body dto.CreateSubscriptionRequest true "Subscription payload"
+// @Success 201 {object} dto.SubscriptionResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 409 {object} dto.ErrorResponse
+// @Failure 429 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /api/subscriptions [post]
 func NewCreateSubscriptionHandler(log *slog.Logger, subscription *usecase.Subscription) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req dto.CreateSubscriptionRequest
@@ -39,6 +53,19 @@ func NewCreateSubscriptionHandler(log *slog.Logger, subscription *usecase.Subscr
 	}
 }
 
+// NewDeleteSubscriptionHandler godoc
+// @Summary Delete subscription
+// @Tags subscriptions
+// @Produce json
+// @Param owner path string true "Repository owner"
+// @Param repo path string true "Repository name"
+// @Success 204 {string} string "No Content"
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 429 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /api/subscriptions/{owner}/{repo} [delete]
 func NewDeleteSubscriptionHandler(log *slog.Logger, subscription *usecase.Subscription) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		owner := strings.TrimSpace(r.PathValue("owner"))
@@ -54,6 +81,17 @@ func NewDeleteSubscriptionHandler(log *slog.Logger, subscription *usecase.Subscr
 	}
 }
 
+// NewListSubscriptionsHandler godoc
+// @Summary List subscriptions
+// @Tags subscriptions
+// @Produce json
+// @Success 200 {object} dto.ListSubscriptionsResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 429 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /api/subscriptions [get]
 func NewListSubscriptionsHandler(log *slog.Logger, subscription *usecase.Subscription) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		subscriptions, err := subscription.List(r.Context())
@@ -81,6 +119,17 @@ func NewListSubscriptionsHandler(log *slog.Logger, subscription *usecase.Subscri
 	}
 }
 
+// NewSubscriptionsInfoHandler godoc
+// @Summary Get subscribed repositories info
+// @Tags subscriptions
+// @Produce json
+// @Success 200 {object} dto.SubscriptionsInfoResponse
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 401 {object} dto.ErrorResponse
+// @Failure 404 {object} dto.ErrorResponse
+// @Failure 429 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /api/subscriptions/info [get]
 func NewSubscriptionsInfoHandler(log *slog.Logger, subscriptionInfo *usecase.SubscriptionInfo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		repositories, err := subscriptionInfo.Fetch(r.Context())

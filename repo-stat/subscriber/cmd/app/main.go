@@ -6,18 +6,19 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-
 	"repo-stat/platform/grpcserver"
 	"repo-stat/platform/logger"
-	subscriberpb "repo-stat/proto/subscriber"
 	"repo-stat/subscriber/config"
 	"repo-stat/subscriber/internal/adapter"
-	grpccontroller "repo-stat/subscriber/internal/controller/grpc"
-	db "repo-stat/subscriber/internal/sqlc"
 	"repo-stat/subscriber/internal/usecase"
 
+	subscriberpb "repo-stat/proto/subscriber"
+
+	grpccontroller "repo-stat/subscriber/internal/controller/grpc"
+	db "repo-stat/subscriber/internal/sqlc"
+
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/pgx/v5"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
