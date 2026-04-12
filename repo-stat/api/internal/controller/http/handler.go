@@ -11,7 +11,7 @@ import (
 	"repo-stat/api/internal/usecase"
 )
 
-func NewHandler(ctx context.Context, log *slog.Logger, cfg config.Config) (http.Handler, error) {
+func NewHandler(_ context.Context, log *slog.Logger, cfg config.Config) (http.Handler, error) {
 	processorClient, err := processor.NewClient(cfg.Services.Processor, log)
 	if err != nil {
 		log.Error("cannot init processor adapter", "error", err)
@@ -31,6 +31,5 @@ func NewHandler(ctx context.Context, log *slog.Logger, cfg config.Config) (http.
 	AddRoutes(mux, log, pingUseCase, repositoryInfoUseCase)
 
 	var handler http.Handler = mux
-	_ = ctx
 	return handler, nil
 }
