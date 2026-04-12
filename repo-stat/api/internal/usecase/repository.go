@@ -6,9 +6,6 @@ import (
 	"repo-stat/api/internal/domain"
 )
 
-type RepositoryGetter interface {
-	GetRepository(ctx context.Context, owner, repo string) (*domain.RepositoryInfo, error)
-}
 
 type RepositoryInfo struct {
 	getter RepositoryGetter
