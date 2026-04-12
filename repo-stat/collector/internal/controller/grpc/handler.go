@@ -12,7 +12,12 @@ import (
 
 func NewServerHandler(log *slog.Logger, cfg config.Config) (*grpcserver.Server, error) {
 	githubAdapter := adapter.NewGitHubAdapter()
-	collectorService := service.NewCollectorService(githubAdapter)
+	subscriberClient, err := adapter.NewSubscriberClient(cfg.Services.Subscriber, log)
+	if err != nil {
+		return nil, err
+	}
+
+	collectorService := service.NewCollectorService(githubAdapter, subscriberClient)
 	pingService := service.NewPing()
 	collectorServer := NewHandler(log, collectorService, pingService)
 

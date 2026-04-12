@@ -16,6 +16,7 @@ import (
 
 type ServiceInterface interface {
 	GetRepositoryData(ctx context.Context, owner, repo string) (*service.RepositoryModel, error)
+	GetSubscriptionsData(ctx context.Context) ([]service.RepositoryModel, error)
 }
 
 type Handler struct {

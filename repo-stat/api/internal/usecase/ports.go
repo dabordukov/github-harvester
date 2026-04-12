@@ -12,4 +12,11 @@ type Pinger interface {
 
 type RepositoryGetter interface {
 	GetRepository(ctx context.Context, owner, repo string) (*domain.RepositoryInfo, error)
+	GetSubscriptionsInfo(ctx context.Context) ([]domain.RepositoryInfo, error)
+}
+
+type SubscriptionManager interface {
+	CreateSubscription(ctx context.Context, owner, repo string) (*domain.Subscription, error)
+	DeleteSubscription(ctx context.Context, owner, repo string) error
+	ListSubscriptions(ctx context.Context) ([]domain.Subscription, error)
 }

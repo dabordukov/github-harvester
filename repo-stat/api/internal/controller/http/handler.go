@@ -26,9 +26,11 @@ func NewHandler(_ context.Context, log *slog.Logger, cfg config.Config) (http.Ha
 
 	pingUseCase := usecase.NewPing(processorClient, subscriberClient)
 	repositoryInfoUseCase := usecase.NewRepositoryInfo(processorClient)
+	subscriptionUseCase := usecase.NewSubscription(subscriberClient)
+	subscriptionInfoUseCase := usecase.NewSubscriptionInfo(processorClient)
 
 	mux := http.NewServeMux()
-	AddRoutes(mux, log, pingUseCase, repositoryInfoUseCase)
+	AddRoutes(mux, log, pingUseCase, repositoryInfoUseCase, subscriptionUseCase, subscriptionInfoUseCase)
 
 	var handler http.Handler = mux
 	return handler, nil

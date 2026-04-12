@@ -17,3 +17,7 @@ func NewProcessorService(collector CollectorProvider) *ProcessorService {
 func (s *ProcessorService) GetRepositoryData(ctx context.Context, owner, repo string) (*domain.Repository, error) {
 	return s.collector.GetRepository(ctx, owner, repo)
 }
+
+func (s *ProcessorService) GetSubscriptionsInfo(ctx context.Context) ([]domain.Repository, error) {
+	return s.collector.GetSubscriptionsInfo(ctx)
+}

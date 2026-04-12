@@ -4,14 +4,20 @@ import (
 	"context"
 
 	"repo-stat/collector/internal/dto"
+	subscriberpb "repo-stat/proto/subscriber"
 )
 
 type GitHubProvider interface {
 	FetchAll(ctx context.Context, owner, repo string) (*dto.RepositoryDTO, error)
 }
 
+type SubscriptionProvider interface {
+	ListSubscriptions(ctx context.Context) ([]*subscriberpb.Subscription, error)
+}
+
 type CollectorService struct {
-	provider GitHubProvider
+	provider   GitHubProvider
+	subscriber SubscriptionProvider
 }
 
 type RepositoryModel struct {
@@ -25,8 +31,11 @@ type RepositoryModel struct {
 	CommitsCount int64
 }
 
-func NewCollectorService(p GitHubProvider) *CollectorService {
-	return &CollectorService{provider: p}
+func NewCollectorService(p GitHubProvider, subscriber SubscriptionProvider) *CollectorService {
+	return &CollectorService{
+		provider:   p,
+		subscriber: subscriber,
+	}
 }
 
 func (s *CollectorService) GetRepositoryData(ctx context.Context, owner, repo string) (*RepositoryModel, error) {
@@ -45,4 +54,23 @@ func (s *CollectorService) GetRepositoryData(ctx context.Context, owner, repo st
 		CreatedAt:    data.CreatedAt,
 		CommitsCount: int64(data.CommitsCount),
 	}, nil
+}
+
+func (s *CollectorService) GetSubscriptionsData(ctx context.Context) ([]RepositoryModel, error) {
+	subscriptions, err := s.subscriber.ListSubscriptions(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	repositories := make([]RepositoryModel, 0, len(subscriptions))
+	for _, subscription := range subscriptions {
+		repository, err := s.GetRepositoryData(ctx, subscription.GetOwner(), subscription.GetRepoName())
+		if err != nil {
+			return nil, err
+		}
+
+		repositories = append(repositories, *repository)
+	}
+
+	return repositories, nil
 }
