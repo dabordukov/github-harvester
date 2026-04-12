@@ -87,7 +87,7 @@ func parseRepositoryURL(u string) (string, string, error) {
 func writeGRPCError(w http.ResponseWriter, err error) {
 	status, ok := status.FromError(err)
 	if !ok {
-		writeError(w, http.StatusInternalServerError, "internal server error")
+		writeError(w, http.StatusInternalServerError, "failed to extract grpc error")
 		return
 	}
 
