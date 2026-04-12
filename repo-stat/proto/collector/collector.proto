@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package collector;
+option go_package = "repo-stat/proto/collector";
+
+service Collector {
+  rpc GetRepository(GetRepoRequest) returns (GetRepoResponse);
+  rpc Ping(PingRequest) returns (PingResponse);
+}
+
+message GetRepoResponse {
+  string name = 1;
+  string owner = 2;
+  string description = 3;
+  int64 forks = 4;
+  int64 stars = 5;
+  string created_at = 6;
+  int64 commits_count = 7;
+  string full_name = 8;
+}
+
+message GetRepoRequest {
+  string owner = 1;
+  string repo_name = 2;
+}
+
+message PingRequest {
+}
+
+message PingResponse {
+  string reply = 1;
+}
