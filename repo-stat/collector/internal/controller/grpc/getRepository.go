@@ -7,7 +7,7 @@ import (
 	"log/slog"
 
 	"repo-stat/collector/internal/adapter"
-	"repo-stat/collector/internal/service"
+	service "repo-stat/collector/internal/usecase"
 	"repo-stat/proto/collector"
 
 	"google.golang.org/grpc/codes"

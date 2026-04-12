@@ -8,7 +8,7 @@ import (
 	"os/signal"
 
 	"repo-stat/collector/config"
-	collectorgrpc "repo-stat/collector/internal/handler/grpc"
+	collectorgrpc "repo-stat/collector/internal/controller/grpc"
 	"repo-stat/platform/logger"
 )
 

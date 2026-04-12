@@ -5,7 +5,7 @@ import (
 
 	"repo-stat/collector/config"
 	"repo-stat/collector/internal/adapter"
-	"repo-stat/collector/internal/service"
+	service "repo-stat/collector/internal/usecase"
 	grpcserver "repo-stat/platform/grpcserver"
 	collectorpb "repo-stat/proto/collector"
 )
