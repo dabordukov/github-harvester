@@ -6,7 +6,6 @@ import (
 	"repo-stat/api/internal/domain"
 )
 
-
 type RepositoryInfo struct {
 	getter RepositoryGetter
 }

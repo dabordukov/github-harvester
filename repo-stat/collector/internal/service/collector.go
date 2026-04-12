@@ -3,11 +3,11 @@ package service
 import (
 	"context"
 
-	"repo-stat/collector/internal/adapter"
+	"repo-stat/collector/internal/dto"
 )
 
 type GitHubProvider interface {
-	FetchAll(ctx context.Context, owner, repo string) (*adapter.RepositoryDTO, error)
+	FetchAll(ctx context.Context, owner, repo string) (*dto.RepositoryDTO, error)
 }
 
 type CollectorService struct {

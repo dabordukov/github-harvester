@@ -11,25 +11,14 @@ import (
 	"sync"
 	"time"
 
+	"repo-stat/collector/internal/dto"
+
 	"google.golang.org/grpc/metadata"
 )
 
 const githubAPIEndpoint = "https://api.github.com"
 
 var extractLastPageNumberRegEx = regexp.MustCompile(`page=(\d+)>; rel="last"`)
-
-type RepositoryDTO struct {
-	FullName    string `json:"full_name"`
-	Name        string `json:"name"`
-	OwnerStruct struct {
-		Login string `json:"login"`
-	} `json:"owner"`
-	Description  string `json:"description"`
-	Stars        int    `json:"stargazers_count"`
-	Forks        int    `json:"forks"`
-	CreatedAt    string `json:"created_at"`
-	CommitsCount int
-}
 
 type GitHubAdapter struct {
 	httpClient *http.Client
@@ -41,8 +30,8 @@ func NewGitHubAdapter() *GitHubAdapter {
 	}
 }
 
-func (ga *GitHubAdapter) FetchAll(ctx context.Context, owner, repoName string) (*RepositoryDTO, error) {
-	repoStruct := &RepositoryDTO{}
+func (ga *GitHubAdapter) FetchAll(ctx context.Context, owner, repoName string) (*dto.RepositoryDTO, error) {
+	repoStruct := &dto.RepositoryDTO{}
 	var wg sync.WaitGroup
 	errChan := make(chan error, 2)
 
@@ -72,7 +61,7 @@ func (ga *GitHubAdapter) FetchAll(ctx context.Context, owner, repoName string) (
 	return repoStruct, nil
 }
 
-func (ga *GitHubAdapter) GetRepoInfo(ctx context.Context, owner, repoName string, repoStruct *RepositoryDTO) error {
+func (ga *GitHubAdapter) GetRepoInfo(ctx context.Context, owner, repoName string, repoStruct *dto.RepositoryDTO) error {
 	url := fmt.Sprintf("%s/repos/%s/%s", githubAPIEndpoint, owner, repoName)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -115,7 +104,7 @@ func (ga *GitHubAdapter) GetRepoInfo(ctx context.Context, owner, repoName string
 	return nil
 }
 
-func (ga *GitHubAdapter) GetCommitsCount(ctx context.Context, owner, repoName string, repoStruct *RepositoryDTO) error {
+func (ga *GitHubAdapter) GetCommitsCount(ctx context.Context, owner, repoName string, repoStruct *dto.RepositoryDTO) error {
 	url := fmt.Sprintf("%s/repos/%s/%s/commits?per_page=1", githubAPIEndpoint, owner, repoName)
 	req, err := http.NewRequest("HEAD", url, nil)
 	if err != nil {
