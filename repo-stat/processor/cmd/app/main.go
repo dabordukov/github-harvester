@@ -11,8 +11,8 @@ import (
 	"repo-stat/platform/logger"
 	"repo-stat/processor/config"
 	collectoradapter "repo-stat/processor/internal/adapter/collector"
-	grpccontroller "repo-stat/processor/internal/handler/grpc"
-	"repo-stat/processor/internal/service"
+	grpccontroller "repo-stat/processor/internal/controller/grpc"
+	service "repo-stat/processor/internal/usecase"
 	processorpb "repo-stat/proto/processor"
 )
 
