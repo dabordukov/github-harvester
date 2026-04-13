@@ -1,0 +1,29 @@
+services:
+  collector:
+    build:
+      context: .
+      dockerfile: cmd/collector/Dockerfile
+    container_name: harvester-collector
+    environment:
+      - COLLECTOR_PORT=8888
+    networks:
+      - harvester-net
+
+  gateway:
+    build:
+      context: .
+      dockerfile: cmd/gateway/Dockerfile
+    container_name: harvester-gateway
+    environment:
+      - HTTP_PORT=8080
+      - COLLECTOR_ADDR=collector:8888
+    ports:
+      - "8080:8080"
+    depends_on:
+      - collector
+    networks:
+      - harvester-net
+
+networks:
+  harvester-net:
+    driver: bridge
