@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	service "repo-stat/collector/internal/usecase"
+	"repo-stat/collector/internal/usecase"
 	collectorpb "repo-stat/proto/collector"
 
 	"google.golang.org/grpc/codes"
@@ -18,11 +18,11 @@ func (h *Handler) GetSubscriptionsInfo(
 	repositories, err := h.service.GetSubscriptionsData(ctx)
 	if err != nil {
 		switch {
-		case errors.Is(err, service.ErrNotFound):
+		case errors.Is(err, usecase.ErrNotFound):
 			return nil, status.Error(codes.NotFound, err.Error())
-		case errors.Is(err, service.ErrRateLimited):
+		case errors.Is(err, usecase.ErrRateLimited):
 			return nil, status.Error(codes.ResourceExhausted, err.Error())
-		case errors.Is(err, service.ErrUnauthorized):
+		case errors.Is(err, usecase.ErrUnauthorized):
 			return nil, status.Error(codes.Unauthenticated, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())

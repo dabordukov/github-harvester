@@ -5,7 +5,7 @@ import (
 
 	"repo-stat/collector/config"
 	"repo-stat/collector/internal/adapter"
-	service "repo-stat/collector/internal/usecase"
+	"repo-stat/collector/internal/usecase"
 	grpcserver "repo-stat/platform/grpcserver"
 	collectorpb "repo-stat/proto/collector"
 )
@@ -17,8 +17,8 @@ func NewServerHandler(log *slog.Logger, cfg config.Config) (*grpcserver.Server, 
 		return nil, err
 	}
 
-	collectorService := service.NewCollectorService(githubAdapter, subscriberClient, log)
-	pingService := service.NewPing()
+	collectorService := usecase.NewCollectorService(githubAdapter, subscriberClient, log)
+	pingService := usecase.NewPing()
 	collectorServer := NewHandler(log, collectorService, pingService)
 
 	srv, err := grpcserver.New(cfg.GRPC.Address)
