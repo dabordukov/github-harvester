@@ -63,7 +63,7 @@ func (ga *GitHubAdapter) FetchAll(ctx context.Context, owner, repoName string) (
 
 func (ga *GitHubAdapter) GetRepoInfo(ctx context.Context, owner, repoName string, repoStruct *dto.RepositoryDTO) error {
 	url := fmt.Sprintf("%s/repos/%s/%s", githubAPIEndpoint, owner, repoName)
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func (ga *GitHubAdapter) GetRepoInfo(ctx context.Context, owner, repoName string
 
 func (ga *GitHubAdapter) GetCommitsCount(ctx context.Context, owner, repoName string, repoStruct *dto.RepositoryDTO) error {
 	url := fmt.Sprintf("%s/repos/%s/%s/commits?per_page=1", githubAPIEndpoint, owner, repoName)
-	req, err := http.NewRequest("HEAD", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "HEAD", url, nil)
 	if err != nil {
 		return err
 	}
@@ -127,17 +127,15 @@ func (ga *GitHubAdapter) GetCommitsCount(ctx context.Context, owner, repoName st
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		if resp.StatusCode != http.StatusOK {
-			switch resp.StatusCode {
-			case http.StatusNotFound:
-				return ErrNotFound
-			case http.StatusUnauthorized:
-				return ErrUnauthorized
-			case http.StatusForbidden:
-				return ErrRateLimited
-			default:
-				return fmt.Errorf("github api unexpected status: %d", resp.StatusCode)
-			}
+		switch resp.StatusCode {
+		case http.StatusNotFound:
+			return ErrNotFound
+		case http.StatusUnauthorized:
+			return ErrUnauthorized
+		case http.StatusForbidden:
+			return ErrRateLimited
+		default:
+			return fmt.Errorf("github api unexpected status: %d", resp.StatusCode)
 		}
 	}
 

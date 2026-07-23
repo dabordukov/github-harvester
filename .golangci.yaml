@@ -1,11 +1,16 @@
 version: "2"
+
 linters:
-  enable: [staticcheck]
+  enable:
+    - staticcheck
+    - errcheck
+
   settings:
     staticcheck:
       checks: ["all", "-ST1000"]
     errcheck:
       exclude-functions:
+        - (io.Closer).Close
         - fmt.Fprintf
         - fmt.Fprintln
         - fmt.Printf
