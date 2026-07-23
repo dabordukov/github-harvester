@@ -45,10 +45,10 @@ func (u *Subscription) Create(ctx context.Context, owner, repo string) (*Subscri
 	owner = strings.TrimSpace(owner)
 	repo = strings.TrimSpace(repo)
 	if owner == "" {
-		return nil, errors.New("owner is required")
+		return nil, ErrOwnerRequired
 	}
 	if repo == "" {
-		return nil, errors.New("repo_name is required")
+		return nil, ErrRepoNameRequired
 	}
 
 	if err := u.github.EnsureRepositoryExists(ctx, owner, repo); err != nil {
@@ -77,10 +77,10 @@ func (u *Subscription) Delete(ctx context.Context, owner, repo string) error {
 	owner = strings.TrimSpace(owner)
 	repo = strings.TrimSpace(repo)
 	if owner == "" {
-		return errors.New("owner is required")
+		return ErrOwnerRequired
 	}
 	if repo == "" {
-		return errors.New("repo_name is required")
+		return ErrRepoNameRequired
 	}
 
 	rowsAffected, err := u.store.DeleteSubscription(ctx, db.DeleteSubscriptionParams{

@@ -6,7 +6,6 @@ import (
 	"log"
 	"log/slog"
 
-	"repo-stat/collector/internal/adapter"
 	service "repo-stat/collector/internal/usecase"
 	"repo-stat/proto/collector"
 
@@ -48,11 +47,11 @@ func (h *Handler) GetRepository(ctx context.Context, req *collector.GetRepoReque
 		log.Printf("Error: %v", err)
 
 		switch {
-		case errors.Is(err, adapter.ErrNotFound):
+		case errors.Is(err, service.ErrNotFound):
 			return nil, status.Error(codes.NotFound, err.Error())
-		case errors.Is(err, adapter.ErrRateLimited):
+		case errors.Is(err, service.ErrRateLimited):
 			return nil, status.Error(codes.ResourceExhausted, err.Error())
-		case errors.Is(err, adapter.ErrUnauthorized):
+		case errors.Is(err, service.ErrUnauthorized):
 			return nil, status.Error(codes.Unauthenticated, err.Error())
 		default:
 			return nil, status.Error(codes.Internal, err.Error())
