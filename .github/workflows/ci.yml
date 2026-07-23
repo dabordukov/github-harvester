@@ -47,6 +47,13 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Integration tests
-        run: make test
+        run: |
+          set +e
+          make test
+          status=$?
+          docker compose ps
+          docker compose logs postgres
+          docker inspect postgres --format='{{json .State.Health}}'
+          exit $status
         env:
           CONTAINER_RUNTIME: docker
