@@ -19,6 +19,7 @@ type SubscriptionProvider interface {
 type CollectorService struct {
 	provider   GitHubProvider
 	subscriber SubscriptionProvider
+	log        *slog.Logger
 }
 
 type RepositoryModel struct {
@@ -32,10 +33,11 @@ type RepositoryModel struct {
 	CommitsCount int64
 }
 
-func NewCollectorService(p GitHubProvider, subscriber SubscriptionProvider) *CollectorService {
+func NewCollectorService(p GitHubProvider, subscriber SubscriptionProvider, logger *slog.Logger) *CollectorService {
 	return &CollectorService{
 		provider:   p,
 		subscriber: subscriber,
+		log:        logger,
 	}
 }
 
@@ -67,7 +69,7 @@ func (s *CollectorService) GetSubscriptionsData(ctx context.Context) ([]Reposito
 	for _, subscription := range subscriptions {
 		repository, err := s.GetRepositoryData(ctx, subscription.GetOwner(), subscription.GetRepoName())
 		if err != nil {
-			slog.Error(err.Error())
+			s.log.Error(err.Error())
 			continue
 		}
 

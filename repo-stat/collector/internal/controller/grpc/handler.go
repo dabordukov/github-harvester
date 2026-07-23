@@ -17,7 +17,7 @@ func NewServerHandler(log *slog.Logger, cfg config.Config) (*grpcserver.Server, 
 		return nil, err
 	}
 
-	collectorService := service.NewCollectorService(githubAdapter, subscriberClient)
+	collectorService := service.NewCollectorService(githubAdapter, subscriberClient, log)
 	pingService := service.NewPing()
 	collectorServer := NewHandler(log, collectorService, pingService)
 
