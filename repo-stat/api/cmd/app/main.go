@@ -53,7 +53,7 @@ func run(ctx context.Context) error {
 func main() {
 	ctx := context.Background()
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	defer cancel()
+
 	if err := run(ctx); err != nil {
 		_, err = fmt.Fprintln(os.Stderr, err)
 		if err != nil {
@@ -62,4 +62,5 @@ func main() {
 		cancel()
 		os.Exit(1)
 	}
+	cancel()
 }

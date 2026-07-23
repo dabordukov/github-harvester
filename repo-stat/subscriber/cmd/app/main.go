@@ -89,12 +89,15 @@ func runMigrations(cfg config.Config) error {
 func main() {
 	ctx := context.Background()
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	defer cancel()
+
 	if err := run(ctx); err != nil {
 		_, err = fmt.Fprintln(os.Stderr, err)
 		if err != nil {
 			fmt.Printf("launching server error: %s\n", err)
 		}
+		cancel()
 		os.Exit(1)
 	}
+
+	cancel()
 }
