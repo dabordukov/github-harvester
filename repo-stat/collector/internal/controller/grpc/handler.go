@@ -16,7 +16,6 @@ func NewServerHandler(log *slog.Logger, cfg config.Config) (*grpcserver.Server, 
 	if err != nil {
 		return nil, err
 	}
-	subscriberClient.Close()
 
 	collectorService := service.NewCollectorService(githubAdapter, subscriberClient)
 	pingService := service.NewPing()

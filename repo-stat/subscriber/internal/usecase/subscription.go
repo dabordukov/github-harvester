@@ -11,7 +11,11 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-var ErrAlreadyExists = errors.New("subscription already exists")
+var (
+	ErrAlreadyExists    = errors.New("subscription already exists")
+	ErrOwnerRequired    = errors.New("owner is required")
+	ErrRepoNameRequired = errors.New("repo_name is required")
+)
 
 type GitHubProvider interface {
 	EnsureRepositoryExists(ctx context.Context, owner, repo string) error

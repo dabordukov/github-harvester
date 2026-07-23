@@ -17,7 +17,6 @@ func NewHandler(_ context.Context, log *slog.Logger, cfg config.Config) (http.Ha
 		log.Error("cannot init processor adapter", "error", err)
 		return nil, err
 	}
-	defer processorClient.Close()
 
 	subscriberClient, err := subscriber.NewClient(cfg.Services.Subscriber, log)
 	if err != nil {

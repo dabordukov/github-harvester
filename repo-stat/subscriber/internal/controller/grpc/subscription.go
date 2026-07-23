@@ -73,7 +73,7 @@ func toStatusError(err error) error {
 	switch {
 	case err == nil:
 		return nil
-	case err.Error() == "owner is required", err.Error() == "repo_name is required", err.Error() == "subscription is required":
+	case errors.Is(err, usecase.ErrOwnerRequired), errors.Is(err, usecase.ErrRepoNameRequired):
 		return status.Error(codes.InvalidArgument, err.Error())
 	case errors.Is(err, adapter.ErrNotFound):
 		return status.Error(codes.NotFound, err.Error())
