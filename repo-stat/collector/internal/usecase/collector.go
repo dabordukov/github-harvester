@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log/slog"
 
 	"repo-stat/collector/internal/dto"
 	subscriberpb "repo-stat/proto/subscriber"
@@ -66,7 +67,8 @@ func (s *CollectorService) GetSubscriptionsData(ctx context.Context) ([]Reposito
 	for _, subscription := range subscriptions {
 		repository, err := s.GetRepositoryData(ctx, subscription.GetOwner(), subscription.GetRepoName())
 		if err != nil {
-			return nil, err
+			slog.Error(err.Error())
+			continue
 		}
 
 		repositories = append(repositories, *repository)
