@@ -29,6 +29,7 @@ func NewServerHandler(log *slog.Logger, cfg config.Config) (*grpcserver.Server, 
 		return nil, nil, err
 	}
 
+	log.Info("Starting grpc server...")
 	collectorpb.RegisterCollectorServer(srv.GRPC(), collectorServer)
 
 	cleanup := func() {

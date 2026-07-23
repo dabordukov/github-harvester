@@ -21,7 +21,7 @@ test: check-container-runtime ## Up containers and run tests
 	@$(MAKE) up
 	@echo "Waiting for cluster to start" \
 		&& for i in $$(seq 15); do \
-			curl -sf http://localhost:28080 >/dev/null 2>&1 && break \
+			curl -sf http://localhost:28080/api/ping >/dev/null 2>&1 && break \
 				|| true; \
 			sleep 1; \
 		done || { echo "Error: timeout"; exit 1; }
