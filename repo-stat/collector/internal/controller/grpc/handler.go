@@ -10,11 +10,11 @@ import (
 	collectorpb "repo-stat/proto/collector"
 )
 
-func NewServerHandler(log *slog.Logger, cfg config.Config) (*grpcserver.Server, error) {
+func NewServerHandler(log *slog.Logger, cfg config.Config) (*grpcserver.Server, func(), error) {
 	githubAdapter := adapter.NewGitHubAdapter()
 	subscriberClient, err := adapter.NewSubscriberClient(cfg.Services.Subscriber, log)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	collectorService := usecase.NewCollectorService(githubAdapter, subscriberClient, log)
@@ -23,10 +23,20 @@ func NewServerHandler(log *slog.Logger, cfg config.Config) (*grpcserver.Server, 
 
 	srv, err := grpcserver.New(cfg.GRPC.Address)
 	if err != nil {
-		return nil, err
+		if err := subscriberClient.Close(); err != nil {
+			log.Error("failed to close subscriber client", "error", err)
+		}
+		return nil, nil, err
 	}
 
 	collectorpb.RegisterCollectorServer(srv.GRPC(), collectorServer)
 
-	return srv, nil
+	cleanup := func() {
+		log.Info("closing gRPC clients...")
+		if err := subscriberClient.Close(); err != nil {
+			log.Error("failed to close subscriber client", "error", err)
+		}
+	}
+
+	return srv, cleanup, nil
 }

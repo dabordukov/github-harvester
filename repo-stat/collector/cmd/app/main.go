@@ -21,18 +21,18 @@ func run(ctx context.Context) error {
 	cfg := config.MustLoad(configPath)
 
 	// logger
-
 	log := logger.MustMakeLogger(cfg.Logger.LogLevel)
 
 	log.Info("starting server...")
 	log.Debug("debug messages are enabled")
 
 	// handler
-	srv, err := collectorgrpc.NewServerHandler(log, cfg)
+	srv, cleanup, err := collectorgrpc.NewServerHandler(log, cfg)
 	if err != nil {
 		log.Error("error creating server", "error", err)
 		return err
 	}
+	defer cleanup()
 
 	if err := srv.Run(ctx); err != nil {
 		return fmt.Errorf("run grpc server: %w", err)

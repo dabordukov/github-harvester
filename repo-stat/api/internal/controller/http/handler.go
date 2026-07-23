@@ -11,17 +11,20 @@ import (
 	"repo-stat/api/internal/usecase"
 )
 
-func NewHandler(_ context.Context, log *slog.Logger, cfg config.Config) (http.Handler, error) {
+func NewHandler(_ context.Context, log *slog.Logger, cfg config.Config) (http.Handler, func(), error) {
 	processorClient, err := processor.NewClient(cfg.Services.Processor, log)
 	if err != nil {
 		log.Error("cannot init processor adapter", "error", err)
-		return nil, err
+		return nil, nil, err
 	}
 
 	subscriberClient, err := subscriber.NewClient(cfg.Services.Subscriber, log)
 	if err != nil {
 		log.Error("cannot init subscriber adapter", "error", err)
-		return nil, err
+		if err := processorClient.Close(); err != nil {
+			log.Error("failed to close processor client", "error", err)
+		}
+		return nil, nil, err
 	}
 
 	pingUseCase := usecase.NewPing(processorClient, subscriberClient)
@@ -29,9 +32,18 @@ func NewHandler(_ context.Context, log *slog.Logger, cfg config.Config) (http.Ha
 	subscriptionUseCase := usecase.NewSubscription(subscriberClient)
 	subscriptionInfoUseCase := usecase.NewSubscriptionInfo(processorClient)
 
-	mux := http.NewServeMux()
-	AddRoutes(mux, log, pingUseCase, repositoryInfoUseCase, subscriptionUseCase, subscriptionInfoUseCase)
+	handler := http.NewServeMux()
+	AddRoutes(handler, log, pingUseCase, repositoryInfoUseCase, subscriptionUseCase, subscriptionInfoUseCase)
 
-	var handler http.Handler = mux
-	return handler, nil
+	cleanup := func() {
+		log.Info("closing gRPC clients...")
+		if err := processorClient.Close(); err != nil {
+			log.Error("failed to close processor client", "error", err)
+		}
+		if err := subscriberClient.Close(); err != nil {
+			log.Error("failed to close subscriber client", "error", err)
+		}
+	}
+
+	return handler, cleanup, nil
 }
