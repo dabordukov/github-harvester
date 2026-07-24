@@ -4,6 +4,8 @@ import (
 	"context"
 
 	processorpb "repo-stat/proto/processor"
+
+	"google.golang.org/grpc/status"
 )
 
 func (s *Server) GetSubscriptionsInfo(
@@ -13,7 +15,7 @@ func (s *Server) GetSubscriptionsInfo(
 	repositories, err := s.service.GetSubscriptionsInfo(ctx)
 	if err != nil {
 		s.log.Error("processor get subscriptions info failed", "error", err)
-		return nil, err
+		return nil, status.Convert(err).Err()
 	}
 
 	response := &processorpb.GetSubscriptionsInfoResponse{
