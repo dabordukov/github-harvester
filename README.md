@@ -1,24 +1,81 @@
-# GitHub Repo Info (Demo)
+# GitHub Harvester
 
-Это демонстрационная версия будущего сервиса для анализа репозиториев GitHub. Программа позволяет получать основную информацию о проекте, количество звезд и список топ-коммитеров через GitHub API.
+Микросервисный проект для получения информации о репозиториях GitHub и управления подписками на них.
 
-## 📋 Особенности (Demo)
-* Получение метаданных репозитория (Stars, Forks, Description).
+## Сервисы
 
-## 📂 Структура проекта
-* `demo/` — папка с исходным кодом демо-версии.
+- `api` — HTTP gateway. Отдаёт старый endpoint по URL репозитория и новые endpoints для подписок.
+- `subscriber` — хранит подписки в PostgreSQL, проверяет существование репозитория через GitHub REST API.
+- `processor` — orchestration слой между `api` и `collector`.
+- `collector` — получает данные о репозиториях из GitHub и умеет собирать информацию по всем подпискам.
+- `postgres` — база данных для `subscriber`.
 
-## 🛠 Запуск (Demo)
+## Эндпоинты API
 
-Из корневой директории проекта выполните команду:
+- `GET /api/ping`
+- `GET /api/repositories/info?url=https://github.com/{owner}/{repo}`
+- `POST /api/subscriptions`
+- `DELETE /api/subscriptions/{owner}/{repo}`
+- `GET /api/subscriptions`
+- `GET /api/subscriptions/info`
+
+## Запуск локально через Docker Compose
+
+Из корня репозитория:
 
 ```bash
-go run demo/main.go
+docker compose up --build
 ```
 
-## 🔑 Github API key:
-Для использования ключа укажите переменную среды GITHUB_TOKEN:
+После запуска сервисы доступны на:
+
+- API: `http://localhost:28080`
+- Subscriber gRPC: `localhost:28081`
+- Processor gRPC: `localhost:28082`
+- Collector gRPC: `localhost:28083`
+
+## Примеры запросов
+
+Получить информацию о конкретном репозитории:
 
 ```bash
-export GITHUB_TOKEN=github_123456789
+curl -X GET "http://localhost:28080/api/repositories/info?url=https://github.com/golang/go"
 ```
+
+Подписаться на репозиторий:
+
+```bash
+curl -X POST http://localhost:28080/api/subscriptions \
+  -H "Content-Type: application/json" \
+  -d '{"owner":"golang","repo_name":"go"}'
+```
+
+Получить список подписок:
+
+```bash
+curl -X GET http://localhost:28080/api/subscriptions
+```
+
+Получить агрегированную информацию по подпискам:
+
+```bash
+curl -X GET http://localhost:28080/api/subscriptions/info
+```
+
+Отписаться:
+
+```bash
+curl -X DELETE http://localhost:28080/api/subscriptions/golang/go
+```
+
+## Локальная разработка без Docker
+
+В каталоге `repo-stat`:
+
+```bash
+make protobuf
+make sqlc
+go test ./...
+```
+
+Для `subscriber` нужно поднять PostgreSQL и передать `DATABASE_DSN`.

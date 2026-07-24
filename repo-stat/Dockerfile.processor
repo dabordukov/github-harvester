@@ -18,8 +18,8 @@ RUN cd /src && \
 ENV CGO_ENABLED=0
 RUN cd /src && go build -o /processor processor/cmd/app/main.go
 
-FROM scratch
-
+FROM alpine:3.23
+RUN apk add --no-cache ca-certificates netcat-openbsd
 COPY --from=build /processor /processor
 
 ENTRYPOINT ["/processor", "-config", "/config.yaml"]

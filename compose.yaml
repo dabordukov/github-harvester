@@ -1,4 +1,20 @@
 services:
+  postgres:
+    image: postgres:18-alpine
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: repo_stat
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
   api:
     image: api:latest
     build:
@@ -15,10 +31,18 @@ services:
       - SUBSCRIBER_ADDRESS=subscriber:8080
       - PROCESSOR_ADDRESS=processor:8080
     depends_on:
-      - subscriber
-      - processor
-
+      subscriber:
+        condition: service_healthy
+      processor:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
   subscriber:
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
     image: subscriber:latest
     build:
       context: repo-stat
@@ -31,9 +55,18 @@ services:
       - ./repo-stat/subscriber/config/config.yaml:/config.yaml
     environment:
       - LISTEN_ADDRESS=:8080
-      - API_ADDRESS=api:8080
+      - DATABASE_DSN=postgres://postgres:postgres@postgres:5432/repo_stat?sslmode=disable
+      - MIGRATIONS_PATH=file:///migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   processor:
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
     image: processor:latest
     build:
       context: repo-stat
@@ -48,9 +81,16 @@ services:
       - LISTEN_ADDRESS=:8080
       - COLLECTOR_ADDRESS=collector:8080
     depends_on:
-      - collector
+      collector:
+        condition: service_healthy
+
 
   collector:
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8080"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
     image: collector:latest
     build:
       context: repo-stat
@@ -63,6 +103,7 @@ services:
       - ./repo-stat/collector/config/config.yaml:/config.yaml
     environment:
       - LISTEN_ADDRESS=:8080
+      - SUBSCRIBER_ADDRESS=subscriber:8080
 
   tests:
     image: tests:latest
@@ -73,3 +114,6 @@ services:
     depends_on:
       - api
     entrypoint: [ "true" ]
+
+volumes:
+  postgres_data:

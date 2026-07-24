@@ -10,3 +10,8 @@ type RepositoryInfo struct {
 	CreatedAt    string
 	CommitsCount int64
 }
+
+type Subscription struct {
+	Owner    string
+	RepoName string
+}

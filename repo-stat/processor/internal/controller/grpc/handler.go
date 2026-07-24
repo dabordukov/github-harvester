@@ -10,6 +10,7 @@ import (
 
 type ServiceInterface interface {
 	GetRepositoryData(ctx context.Context, owner, repo string) (*domain.Repository, error)
+	GetSubscriptionsInfo(ctx context.Context) ([]domain.Repository, error)
 	Ping(ctx context.Context) string
 }
 

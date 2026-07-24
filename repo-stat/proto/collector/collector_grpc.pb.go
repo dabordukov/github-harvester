@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Collector_GetRepository_FullMethodName = "/collector.Collector/GetRepository"
-	Collector_Ping_FullMethodName          = "/collector.Collector/Ping"
+	Collector_GetRepository_FullMethodName        = "/collector.Collector/GetRepository"
+	Collector_GetSubscriptionsInfo_FullMethodName = "/collector.Collector/GetSubscriptionsInfo"
+	Collector_Ping_FullMethodName                 = "/collector.Collector/Ping"
 )
 
 // CollectorClient is the client API for Collector service.
@@ -28,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CollectorClient interface {
 	GetRepository(ctx context.Context, in *GetRepoRequest, opts ...grpc.CallOption) (*GetRepoResponse, error)
+	GetSubscriptionsInfo(ctx context.Context, in *GetSubscriptionsInfoRequest, opts ...grpc.CallOption) (*GetSubscriptionsInfoResponse, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 }
 
@@ -49,6 +51,16 @@ func (c *collectorClient) GetRepository(ctx context.Context, in *GetRepoRequest,
 	return out, nil
 }
 
+func (c *collectorClient) GetSubscriptionsInfo(ctx context.Context, in *GetSubscriptionsInfoRequest, opts ...grpc.CallOption) (*GetSubscriptionsInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSubscriptionsInfoResponse)
+	err := c.cc.Invoke(ctx, Collector_GetSubscriptionsInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *collectorClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PingResponse)
@@ -64,6 +76,7 @@ func (c *collectorClient) Ping(ctx context.Context, in *PingRequest, opts ...grp
 // for forward compatibility.
 type CollectorServer interface {
 	GetRepository(context.Context, *GetRepoRequest) (*GetRepoResponse, error)
+	GetSubscriptionsInfo(context.Context, *GetSubscriptionsInfoRequest) (*GetSubscriptionsInfoResponse, error)
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	mustEmbedUnimplementedCollectorServer()
 }
@@ -77,6 +90,9 @@ type UnimplementedCollectorServer struct{}
 
 func (UnimplementedCollectorServer) GetRepository(context.Context, *GetRepoRequest) (*GetRepoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRepository not implemented")
+}
+func (UnimplementedCollectorServer) GetSubscriptionsInfo(context.Context, *GetSubscriptionsInfoRequest) (*GetSubscriptionsInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSubscriptionsInfo not implemented")
 }
 func (UnimplementedCollectorServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Ping not implemented")
@@ -120,6 +136,24 @@ func _Collector_GetRepository_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Collector_GetSubscriptionsInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSubscriptionsInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CollectorServer).GetSubscriptionsInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Collector_GetSubscriptionsInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CollectorServer).GetSubscriptionsInfo(ctx, req.(*GetSubscriptionsInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Collector_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PingRequest)
 	if err := dec(in); err != nil {
@@ -148,6 +182,10 @@ var Collector_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRepository",
 			Handler:    _Collector_GetRepository_Handler,
+		},
+		{
+			MethodName: "GetSubscriptionsInfo",
+			Handler:    _Collector_GetSubscriptionsInfo_Handler,
 		},
 		{
 			MethodName: "Ping",

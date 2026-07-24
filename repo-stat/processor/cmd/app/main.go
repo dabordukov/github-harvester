@@ -12,7 +12,7 @@ import (
 	"repo-stat/processor/config"
 	collectoradapter "repo-stat/processor/internal/adapter/collector"
 	grpccontroller "repo-stat/processor/internal/controller/grpc"
-	service "repo-stat/processor/internal/usecase"
+	"repo-stat/processor/internal/usecase"
 	processorpb "repo-stat/proto/processor"
 )
 
@@ -42,7 +42,7 @@ func run(ctx context.Context) error {
 		}
 	}()
 
-	processorService := service.NewProcessorService(collectorClient)
+	processorService := usecase.NewProcessorService(collectorClient)
 	processorServer := grpccontroller.NewServer(log, processorService)
 
 	srv, err := grpcserver.New(cfg.GRPC.Address)

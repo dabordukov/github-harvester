@@ -35,11 +35,12 @@ func run(ctx context.Context) error {
 	log.Debug("debug messages are enabled")
 
 	// handler
-	handler, err := http.NewHandler(ctx, log, cfg)
+	handler, cleanup, err := http.NewHandler(ctx, log, cfg)
 	if err != nil {
 		log.Error("Error creating handler", "error", err)
 		return err
 	}
+	defer cleanup()
 
 	// server
 	srv := httpserver.New(cfg.HTTP, handler)
@@ -52,6 +53,7 @@ func run(ctx context.Context) error {
 func main() {
 	ctx := context.Background()
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+
 	if err := run(ctx); err != nil {
 		_, err = fmt.Fprintln(os.Stderr, err)
 		if err != nil {

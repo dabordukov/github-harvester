@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"repo-stat/collector/internal/dto"
+	service "repo-stat/collector/internal/usecase"
 
 	"google.golang.org/grpc/metadata"
 )
@@ -63,7 +64,7 @@ func (ga *GitHubAdapter) FetchAll(ctx context.Context, owner, repoName string) (
 
 func (ga *GitHubAdapter) GetRepoInfo(ctx context.Context, owner, repoName string, repoStruct *dto.RepositoryDTO) error {
 	url := fmt.Sprintf("%s/repos/%s/%s", githubAPIEndpoint, owner, repoName)
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return err
 	}
@@ -83,17 +84,8 @@ func (ga *GitHubAdapter) GetRepoInfo(ctx context.Context, owner, repoName string
 		}
 	}()
 
-	if resp.StatusCode != http.StatusOK {
-		switch resp.StatusCode {
-		case http.StatusNotFound:
-			return ErrNotFound
-		case http.StatusUnauthorized:
-			return ErrUnauthorized
-		case http.StatusForbidden:
-			return ErrRateLimited
-		default:
-			return fmt.Errorf("github api unexpected status: %d", resp.StatusCode)
-		}
+	if err := matchStatusCode(resp.StatusCode); err != nil {
+		return err
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(&repoStruct)
@@ -106,7 +98,7 @@ func (ga *GitHubAdapter) GetRepoInfo(ctx context.Context, owner, repoName string
 
 func (ga *GitHubAdapter) GetCommitsCount(ctx context.Context, owner, repoName string, repoStruct *dto.RepositoryDTO) error {
 	url := fmt.Sprintf("%s/repos/%s/%s/commits?per_page=1", githubAPIEndpoint, owner, repoName)
-	req, err := http.NewRequest("HEAD", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "HEAD", url, nil)
 	if err != nil {
 		return err
 	}
@@ -126,19 +118,8 @@ func (ga *GitHubAdapter) GetCommitsCount(ctx context.Context, owner, repoName st
 		}
 	}()
 
-	if resp.StatusCode != http.StatusOK {
-		if resp.StatusCode != http.StatusOK {
-			switch resp.StatusCode {
-			case http.StatusNotFound:
-				return ErrNotFound
-			case http.StatusUnauthorized:
-				return ErrUnauthorized
-			case http.StatusForbidden:
-				return ErrRateLimited
-			default:
-				return fmt.Errorf("github api unexpected status: %d", resp.StatusCode)
-			}
-		}
+	if err := matchStatusCode(resp.StatusCode); err != nil {
+		return err
 	}
 
 	link := resp.Header.Get("link")
@@ -163,4 +144,19 @@ func (ga *GitHubAdapter) extractToken(ctx context.Context) string {
 		}
 	}
 	return ""
+}
+
+func matchStatusCode(code int) error {
+	switch code {
+	case http.StatusOK:
+		return nil
+	case http.StatusNotFound:
+		return service.ErrNotFound
+	case http.StatusUnauthorized:
+		return service.ErrUnauthorized
+	case http.StatusForbidden:
+		return service.ErrRateLimited
+	default:
+		return fmt.Errorf("%w: %d", service.ErrUnexpected, code)
+	}
 }

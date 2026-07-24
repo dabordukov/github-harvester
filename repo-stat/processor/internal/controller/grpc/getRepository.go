@@ -21,7 +21,7 @@ func (s *Server) GetRepository(ctx context.Context, req *processorpb.GetRepoRequ
 	repo, err := s.service.GetRepositoryData(ctx, req.GetOwner(), req.GetRepoName())
 	if err != nil {
 		s.log.Error("processor get repository failed", "error", err, "owner", req.GetOwner(), "repo", req.GetRepoName())
-		return nil, err
+		return nil, status.Convert(err).Err()
 	}
 
 	return &processorpb.GetRepoResponse{
