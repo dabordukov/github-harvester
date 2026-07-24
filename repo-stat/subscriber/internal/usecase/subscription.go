@@ -7,14 +7,7 @@ import (
 
 	db "repo-stat/subscriber/internal/sqlc"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-)
-
-var (
-	ErrAlreadyExists    = errors.New("subscription already exists")
-	ErrOwnerRequired    = errors.New("owner is required")
-	ErrRepoNameRequired = errors.New("repo_name is required")
 )
 
 type GitHubProvider interface {
@@ -91,7 +84,7 @@ func (u *Subscription) Delete(ctx context.Context, owner, repo string) error {
 		return err
 	}
 	if rowsAffected == 0 {
-		return pgx.ErrNoRows
+		return ErrRepoNotFound
 	}
 
 	return nil
