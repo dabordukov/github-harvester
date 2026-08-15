@@ -70,6 +70,32 @@ func (c *Client) Ping(ctx context.Context) string {
 	return "pong"
 }
 
+func (c *Client) GetSubscriptionsInfo(ctx context.Context) ([]domain.Repository, error) {
+	ctx = forwardAuthorization(ctx)
+
+	resp, err := c.pb.GetSubscriptionsInfo(ctx, &collectorpb.GetSubscriptionsInfoRequest{})
+	if err != nil {
+		c.log.Error("collector get subscriptions info failed", "error", err)
+		return nil, err
+	}
+
+	repositories := make([]domain.Repository, 0, len(resp.GetRepositories()))
+	for _, repo := range resp.GetRepositories() {
+		repositories = append(repositories, domain.Repository{
+			FullName:     repo.GetFullName(),
+			Name:         repo.GetName(),
+			Owner:        repo.GetOwner(),
+			Description:  repo.GetDescription(),
+			Forks:        repo.GetForks(),
+			Stars:        repo.GetStars(),
+			CreatedAt:    repo.GetCreatedAt(),
+			CommitsCount: repo.GetCommitsCount(),
+		})
+	}
+
+	return repositories, nil
+}
+
 func (c *Client) Close() error {
 	return c.conn.Close()
 }

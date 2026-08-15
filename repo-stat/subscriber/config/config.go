@@ -10,13 +10,14 @@ type App struct {
 	AppName string `yaml:"app_name" env:"APP_NAME" env-default:"repo-stat-subscriber"`
 }
 
-type Services struct {
-	API string `yaml:"api" env:"API_ADDRESS" env-default:"localhost:8080"`
+type Database struct {
+	DSN            string `yaml:"dsn" env:"DATABASE_DSN" env-required:"true"`
+	MigrationsPath string `yaml:"migrations_path" env:"MIGRATIONS_PATH" env-default:"file://subscriber/migrations"`
 }
 
 type Config struct {
 	App      App               `yaml:"app"`
-	Services Services          `yaml:"services"`
+	Database Database          `yaml:"database"`
 	GRPC     grpcserver.Config `yaml:"grpc"`
 	Logger   logger.Config     `yaml:"logger"`
 }

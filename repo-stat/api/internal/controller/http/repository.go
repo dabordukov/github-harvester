@@ -96,6 +96,8 @@ func writeGRPCError(w http.ResponseWriter, err error) {
 		writeError(w, http.StatusBadRequest, status.Message())
 	case codes.NotFound:
 		writeError(w, http.StatusNotFound, status.Message())
+	case codes.AlreadyExists:
+		writeError(w, http.StatusConflict, status.Message())
 	case codes.Unauthenticated:
 		writeError(w, http.StatusUnauthorized, status.Message())
 	case codes.ResourceExhausted:

@@ -69,6 +69,32 @@ func (c *Client) GetRepository(ctx context.Context, owner, repo string) (*domain
 	}, nil
 }
 
+func (c *Client) GetSubscriptionsInfo(ctx context.Context) ([]domain.RepositoryInfo, error) {
+	ctx = appendAuthorizationFromHTTPContext(ctx)
+
+	resp, err := c.pb.GetSubscriptionsInfo(ctx, &processorpb.GetSubscriptionsInfoRequest{})
+	if err != nil {
+		c.log.Error("processor get subscriptions info failed", "error", err)
+		return nil, err
+	}
+
+	repositories := make([]domain.RepositoryInfo, 0, len(resp.GetRepositories()))
+	for _, repo := range resp.GetRepositories() {
+		repositories = append(repositories, domain.RepositoryInfo{
+			FullName:     repo.GetFullName(),
+			Name:         repo.GetName(),
+			Owner:        repo.GetOwner(),
+			Description:  repo.GetDescription(),
+			Forks:        repo.GetForks(),
+			Stars:        repo.GetStars(),
+			CreatedAt:    repo.GetCreatedAt(),
+			CommitsCount: repo.GetCommitsCount(),
+		})
+	}
+
+	return repositories, nil
+}
+
 func appendAuthorizationFromHTTPContext(ctx context.Context) context.Context {
 	authHeader := authorizationFromHTTPRequest(ctx)
 	if authHeader == "" {

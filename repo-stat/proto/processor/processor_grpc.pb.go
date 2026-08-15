@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Processor_GetRepository_FullMethodName = "/processor.Processor/GetRepository"
-	Processor_Ping_FullMethodName          = "/processor.Processor/Ping"
+	Processor_GetRepository_FullMethodName        = "/processor.Processor/GetRepository"
+	Processor_GetSubscriptionsInfo_FullMethodName = "/processor.Processor/GetSubscriptionsInfo"
+	Processor_Ping_FullMethodName                 = "/processor.Processor/Ping"
 )
 
 // ProcessorClient is the client API for Processor service.
@@ -28,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ProcessorClient interface {
 	GetRepository(ctx context.Context, in *GetRepoRequest, opts ...grpc.CallOption) (*GetRepoResponse, error)
+	GetSubscriptionsInfo(ctx context.Context, in *GetSubscriptionsInfoRequest, opts ...grpc.CallOption) (*GetSubscriptionsInfoResponse, error)
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
 }
 
@@ -49,6 +51,16 @@ func (c *processorClient) GetRepository(ctx context.Context, in *GetRepoRequest,
 	return out, nil
 }
 
+func (c *processorClient) GetSubscriptionsInfo(ctx context.Context, in *GetSubscriptionsInfoRequest, opts ...grpc.CallOption) (*GetSubscriptionsInfoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSubscriptionsInfoResponse)
+	err := c.cc.Invoke(ctx, Processor_GetSubscriptionsInfo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *processorClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PingResponse)
@@ -64,6 +76,7 @@ func (c *processorClient) Ping(ctx context.Context, in *PingRequest, opts ...grp
 // for forward compatibility.
 type ProcessorServer interface {
 	GetRepository(context.Context, *GetRepoRequest) (*GetRepoResponse, error)
+	GetSubscriptionsInfo(context.Context, *GetSubscriptionsInfoRequest) (*GetSubscriptionsInfoResponse, error)
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
 	mustEmbedUnimplementedProcessorServer()
 }
@@ -77,6 +90,9 @@ type UnimplementedProcessorServer struct{}
 
 func (UnimplementedProcessorServer) GetRepository(context.Context, *GetRepoRequest) (*GetRepoResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetRepository not implemented")
+}
+func (UnimplementedProcessorServer) GetSubscriptionsInfo(context.Context, *GetSubscriptionsInfoRequest) (*GetSubscriptionsInfoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetSubscriptionsInfo not implemented")
 }
 func (UnimplementedProcessorServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Ping not implemented")
@@ -120,6 +136,24 @@ func _Processor_GetRepository_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Processor_GetSubscriptionsInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSubscriptionsInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProcessorServer).GetSubscriptionsInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Processor_GetSubscriptionsInfo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProcessorServer).GetSubscriptionsInfo(ctx, req.(*GetSubscriptionsInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Processor_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PingRequest)
 	if err := dec(in); err != nil {
@@ -148,6 +182,10 @@ var Processor_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRepository",
 			Handler:    _Processor_GetRepository_Handler,
+		},
+		{
+			MethodName: "GetSubscriptionsInfo",
+			Handler:    _Processor_GetSubscriptionsInfo_Handler,
 		},
 		{
 			MethodName: "Ping",
