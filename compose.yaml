@@ -15,6 +15,23 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
 
+  postgres-processor:
+    image: postgres:18-alpine
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: processor_db
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+
   api:
     image: api:latest
     build:

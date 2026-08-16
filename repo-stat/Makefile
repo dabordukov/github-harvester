@@ -37,7 +37,8 @@ protobuf:
 		proto/processor/processor.proto
 
 sqlc:
-	cd subscriber && PATH="$(GOBIN):$$PATH" $(SQLC) generate
+	PATH="$(GOBIN):$$PATH" $(SQLC) generate -f subscriber/sqlc.yaml
+	PATH="$(GOBIN):$$PATH" $(SQLC) generate -f processor/sqlc.yaml
 
 swagger:
 	PATH="$(GOBIN):$$PATH" swag init -g api/cmd/app/main.go -o api/docs
