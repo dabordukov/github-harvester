@@ -33,6 +33,12 @@ type RepositoryModel struct {
 	CommitsCount int64
 }
 
+type CollectRequest struct {
+	RequestID string
+	Owner     string
+	RepoName  string
+}
+
 func NewCollectorService(p GitHubProvider, subscriber SubscriptionProvider, logger *slog.Logger) *CollectorService {
 	return &CollectorService{
 		provider:   p,

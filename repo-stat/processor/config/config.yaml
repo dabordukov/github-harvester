@@ -1,6 +1,10 @@
 app:
   app_name: "repo-stat-processor"
 
+database:
+  dsn: "postgres://postgres:postgres@localhost:5432/processor_db?sslmode=disable"
+  migrations_path: "file://processor/migrations"
+
 grpc:
   address: "localhost:8083"
   timeout: "5s"
@@ -10,3 +14,10 @@ logger:
 
 services:
   collector: "localhost:8082"
+
+kafka:
+  brokers:
+    - "kafka:9092"
+  request_topic: "collect-requests"
+  result_topic: "collect-results"
+  group_id: "processor-group"

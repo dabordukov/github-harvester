@@ -22,14 +22,14 @@ services:
       interval: 2s
       timeout: 3s
       retries: 10
-    container_name: postgres
+    container_name: postgres-processor
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: processor_db
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - postgres_processor_data:/var/lib/postgresql
 
 
   api:
@@ -96,8 +96,12 @@ services:
       - ./repo-stat/processor/config/config.yaml:/config.yaml
     environment:
       - LISTEN_ADDRESS=:8080
+      - DATABASE_DSN=postgres://postgres:postgres@postgres-processor:5432/processor_db?sslmode=disable
+      - MIGRATIONS_PATH=file:///migrations
       - COLLECTOR_ADDRESS=collector:8080
     depends_on:
+      postgres-processor:
+        condition: service_healthy
       collector:
         condition: service_healthy
 
@@ -122,6 +126,26 @@ services:
       - LISTEN_ADDRESS=:8080
       - SUBSCRIBER_ADDRESS=subscriber:8080
 
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: repo-stat-kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=controller,broker
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:29092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,EXTERNAL://localhost:29092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - CLUSTER_ID=MkU3OEVBNTcwNTJENDM2Qk
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+
   tests:
     image: tests:latest
     build:
@@ -134,3 +158,4 @@ services:
 
 volumes:
   postgres_data:
+  postgres_processor_data:
