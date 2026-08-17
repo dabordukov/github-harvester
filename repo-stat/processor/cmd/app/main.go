@@ -52,14 +52,14 @@ func run(ctx context.Context) error {
 	if err != nil {
 		log.Warn("kafka producer unavailable; continuing without async request publishing", "error", err)
 	} else {
-		defer producer.Close()
+		defer func() { _ = producer.Close() }()
 	}
 
 	consumer, err := kafkaadapter.NewKafkaConsumer(cfg.Kafka.Brokers, cfg.Kafka.ResultTopic, cfg.Kafka.GroupID, log)
 	if err != nil {
 		log.Warn("kafka consumer unavailable; continuing without async result processing", "error", err)
 	} else {
-		defer consumer.Close()
+		defer func() { _ = consumer.Close() }()
 		if err := consumer.StartResultConsumer(ctx, repositoryStore); err != nil {
 			log.Warn("cannot start kafka result consumer", "error", err)
 		}

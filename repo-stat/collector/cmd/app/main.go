@@ -35,10 +35,10 @@ func run(ctx context.Context) error {
 	if err != nil {
 		log.Warn("kafka result producer unavailable; collector will remain degraded", "error", err)
 	} else {
-		defer resultProducer.Close()
+		defer func() { _ = resultProducer.Close() }()
 	}
 	if requestProducer != nil {
-		defer requestProducer.Close()
+		defer func() { _ = requestProducer.Close() }()
 	}
 
 	githubAdapter := collectoradapter.NewGitHubAdapter()
@@ -53,7 +53,7 @@ func run(ctx context.Context) error {
 	if err != nil {
 		log.Warn("kafka consumer unavailable; continuing without async collection", "error", err)
 	} else {
-		defer consumer.Close()
+		defer func() { _ = consumer.Close() }()
 		go consumer.StartCollectLoop(ctx, func(ctx context.Context, req usecase.CollectRequest) error {
 			if resultProducer == nil {
 				return fmt.Errorf("kafka result producer not initialized")
