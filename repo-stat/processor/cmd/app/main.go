@@ -10,26 +10,60 @@ import (
 	"repo-stat/platform/grpcserver"
 	"repo-stat/platform/logger"
 	"repo-stat/processor/config"
+	kafkaadapter "repo-stat/processor/internal/adapter"
 	collectoradapter "repo-stat/processor/internal/adapter/collector"
 	grpccontroller "repo-stat/processor/internal/controller/grpc"
+	"repo-stat/processor/internal/sqlc"
 	"repo-stat/processor/internal/usecase"
 	processorpb "repo-stat/proto/processor"
+
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func run(ctx context.Context) error {
-	// config
 	var configPath string
 	flag.StringVar(&configPath, "config", "config.yaml", "server configuration file")
 	flag.Parse()
 
 	cfg := config.MustLoad(configPath)
-
-	// logger
-
 	log := logger.MustMakeLogger(cfg.Logger.LogLevel)
 
 	log.Info("starting server...")
 	log.Debug("debug messages are enabled")
+
+	pool, err := pgxpool.New(ctx, cfg.Database.DSN)
+	if err != nil {
+		return fmt.Errorf("create pgx pool: %w", err)
+	}
+	defer pool.Close()
+	if err := pool.Ping(ctx); err != nil {
+		return fmt.Errorf("ping database: %w", err)
+	}
+	if err := runMigrations(cfg); err != nil {
+		return fmt.Errorf("run migrations: %w", err)
+	}
+
+	queries := sqlc.New(pool)
+	repositoryStore := kafkaadapter.NewRepositoryStore(queries)
+	producer, err := kafkaadapter.NewKafkaProducer(cfg.Kafka.Brokers, cfg.Kafka.RequestTopic, log)
+	if err != nil {
+		log.Warn("kafka producer unavailable; continuing without async request publishing", "error", err)
+	} else {
+		defer func() { _ = producer.Close() }()
+	}
+
+	consumer, err := kafkaadapter.NewKafkaConsumer(cfg.Kafka.Brokers, cfg.Kafka.ResultTopic, cfg.Kafka.GroupID, log)
+	if err != nil {
+		log.Warn("kafka consumer unavailable; continuing without async result processing", "error", err)
+	} else {
+		defer func() { _ = consumer.Close() }()
+		if err := consumer.StartResultConsumer(ctx, repositoryStore); err != nil {
+			log.Warn("cannot start kafka result consumer", "error", err)
+		}
+	}
 
 	collectorClient, err := collectoradapter.NewClient(cfg.Services.Collector, log)
 	if err != nil {
@@ -42,7 +76,10 @@ func run(ctx context.Context) error {
 		}
 	}()
 
-	processorService := usecase.NewProcessorService(collectorClient)
+	processorService := usecase.NewProcessorService(collectorClient, usecase.ProcessorDependency{
+		Store:     repositoryStore,
+		Publisher: producer,
+	})
 	processorServer := grpccontroller.NewServer(log, processorService)
 
 	srv, err := grpcserver.New(cfg.GRPC.Address)
@@ -54,6 +91,21 @@ func run(ctx context.Context) error {
 
 	if err := srv.Run(ctx); err != nil {
 		return fmt.Errorf("run grpc server: %w", err)
+	}
+	return nil
+}
+
+func runMigrations(cfg config.Config) error {
+	migrator, err := migrate.New(cfg.Database.MigrationsPath, cfg.Database.DSN)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_, _ = migrator.Close()
+	}()
+
+	if err := migrator.Up(); err != nil && err != migrate.ErrNoChange {
+		return err
 	}
 	return nil
 }

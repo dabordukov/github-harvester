@@ -15,11 +15,16 @@ RUN cd /src && \
     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
     proto/processor/processor.proto
 
-ENV CGO_ENABLED=0
+# ENV CGO_ENABLED=0
 RUN cd /src && go build -o /processor processor/cmd/app/main.go
 
-FROM alpine:3.23
-RUN apk add --no-cache ca-certificates netcat-openbsd
+FROM debian:bookworm-slim
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    netcat-openbsd 
+
 COPY --from=build /processor /processor
+COPY --from=build /src/processor/migrations /migrations
 
 ENTRYPOINT ["/processor", "-config", "/config.yaml"]

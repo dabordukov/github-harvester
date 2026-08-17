@@ -4,9 +4,12 @@ app:
 services:
   subscriber: "localhost:8081"
 
-grpc:
-  address: "localhost:8082"
-  timeout: "5s"
-
 logger:
   log_level: "DEBUG"
+
+kafka:
+  brokers:
+    - "kafka:9092"
+  request_topic: "collect-requests"
+  result_topic: "collect-results"
+  group_id: "collector-group"
