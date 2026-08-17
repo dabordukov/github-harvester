@@ -1,16 +1,29 @@
 # GitHub Harvester
 
-Микросервисный проект для получения информации о репозиториях GitHub и управления подписками на них.
+A microservice project for retrieving GitHub repository information and managing subscriptions to them.
 
-## Сервисы
+## Services
 
-- `api` — HTTP gateway. Отдаёт старый endpoint по URL репозитория и новые endpoints для подписок.
-- `subscriber` — хранит подписки в PostgreSQL, проверяет существование репозитория через GitHub REST API.
-- `processor` — orchestration слой между `api` и `collector`.
-- `collector` — получает данные о репозиториях из GitHub и умеет собирать информацию по всем подпискам.
-- `postgres` — база данных для `subscriber`.
+- `api` — HTTP gateway. Provides endpoints for subscription management and repository information retrieval.
+- `subscriber` — stores user subscriptions in its own PostgreSQL database.
+- `processor` — the central access point for repository data. Acts as a cache and background update orchestrator. Stores collected information in its own PostgreSQL database. On incoming requests, it first checks the database (cache); if data is missing, it publishes a collection task to Kafka.
+- `collector` — asynchronous worker. Consumes data collection tasks from Kafka, calls the GitHub API, and publishes results back to Kafka. Has no direct synchronous interaction with `processor`.
+- `kafka` — message broker providing asynchronous communication between `processor` and `collector`.
+- `postgres` — `subscriber` and `processor` each have their own isolated databases/schemas.
 
-## Эндпоинты API
+### Single Request Processing (Cache-Aside):
+1. Client requests repository information via `api` from `processor`.
+2. `Processor` looks up data in its PostgreSQL database (reads from cache).
+3. If the repository is not found, `processor` publishes a collection task message to a Kafka topic.
+4. `Collector` consumes the message from Kafka, makes a request to the GitHub API, and publishes the collected data back to Kafka.
+5. `Processor` reads the result from Kafka, persists it to its database, and returns the response to the client.
+
+### Background Subscription Sync:
+- Every 15 seconds, `collector` independently initiates the cache update process.
+- It requests the current list of subscriptions from `subscriber`.
+- Based on the received list, `collector` generates update tasks and sends them to Kafka, ensuring regular data updates for subscriptions in the `processor` database without direct user involvement.
+
+## API Endpoints
 
 - `GET /api/ping`
 - `GET /api/repositories/info?url=https://github.com/{owner}/{repo}`
@@ -19,30 +32,28 @@
 - `GET /api/subscriptions`
 - `GET /api/subscriptions/info`
 
-## Запуск локально через Docker Compose
+## Running Locally with Docker Compose
 
-Из корня репозитория:
+From the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-После запуска сервисы доступны на:
+After startup, the services are available at:
 
+- Swagger UI: `http://localhost:28080/swagger/`
 - API: `http://localhost:28080`
-- Subscriber gRPC: `localhost:28081`
-- Processor gRPC: `localhost:28082`
-- Collector gRPC: `localhost:28083`
 
-## Примеры запросов
+## Request Examples
 
-Получить информацию о конкретном репозитории:
+Get information about a specific repository:
 
 ```bash
 curl -X GET "http://localhost:28080/api/repositories/info?url=https://github.com/golang/go"
 ```
 
-Подписаться на репозиторий:
+Subscribe to a repository:
 
 ```bash
 curl -X POST http://localhost:28080/api/subscriptions \
@@ -50,32 +61,20 @@ curl -X POST http://localhost:28080/api/subscriptions \
   -d '{"owner":"golang","repo_name":"go"}'
 ```
 
-Получить список подписок:
+Get the list of subscriptions:
 
 ```bash
 curl -X GET http://localhost:28080/api/subscriptions
 ```
 
-Получить агрегированную информацию по подпискам:
+Get aggregated information on subscriptions:
 
 ```bash
 curl -X GET http://localhost:28080/api/subscriptions/info
 ```
 
-Отписаться:
+Unsubscribe:
 
 ```bash
 curl -X DELETE http://localhost:28080/api/subscriptions/golang/go
 ```
-
-## Локальная разработка без Docker
-
-В каталоге `repo-stat`:
-
-```bash
-make protobuf
-make sqlc
-go test ./...
-```
-
-Для `subscriber` нужно поднять PostgreSQL и передать `DATABASE_DSN`.
