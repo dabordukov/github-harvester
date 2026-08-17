@@ -66,8 +66,6 @@ services:
       dockerfile: Dockerfile.subscriber
     container_name: subscriber
     restart: unless-stopped
-    ports:
-      - 28081:8080
     volumes:
       - ./repo-stat/subscriber/config/config.yaml:/config.yaml
     environment:
@@ -90,8 +88,6 @@ services:
       dockerfile: Dockerfile.processor
     container_name: processor
     restart: unless-stopped
-    ports:
-      - 28082:8080
     volumes:
       - ./repo-stat/processor/config/config.yaml:/config.yaml
     environment:
@@ -118,8 +114,6 @@ services:
       dockerfile: Dockerfile.collector
     container_name: collector
     restart: unless-stopped
-    ports:
-      - 28083:8080
     volumes:
       - ./repo-stat/collector/config/config.yaml:/config.yaml
     environment:
@@ -129,9 +123,6 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: repo-stat-kafka
-    ports:
-      - "9092:9092"
-      - "29092:29092"
     environment:
       - KAFKA_NODE_ID=1
       - KAFKA_PROCESS_ROLES=controller,broker
